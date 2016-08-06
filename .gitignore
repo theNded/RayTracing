@@ -27,3 +27,8 @@
 *.exe
 *.out
 *.app
+
+# CLion
+.idea/
+
+*.xml

@@ -29,7 +29,7 @@ Context::Context() {
             << platforms_[0].getInfo<CL_PLATFORM_NAME>()
             << std::endl;
 
-  context_ = cl::Context(device_, );
+  context_ = cl::Context(device_);
   queue_   = cl::CommandQueue(context_, device_, 0, NULL);
 
 }

@@ -32,23 +32,10 @@ int main(int arg, char* args[]) {
                                            cl_context.device(),
                                            cl_context.context());
 
-  gl_utils::Context gl_context("CL x GL");
-  gl_utils::Control control(gl_context.window());
-
   cv::Mat input_img = cv::imread("/Users/Neo/Desktop/avatar.png");
   // OpenCL only recognizes RGBA
   cv::cvtColor(input_img, input_img, cv::COLOR_BGR2RGBA);
 
-  GLuint texture;
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
-               input_img.cols, input_img.rows, 0,
-               GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
   const cl::ImageFormat format(CL_RGBA, CL_UNSIGNED_INT8);
   cl::Image2D in(cl_context.context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
