@@ -27,50 +27,66 @@
 #include "cl_utils/kernel.h"
 
 int main(int arg, char* args[]) {
-  cl_utils::Context cl_context;
-  cl::Kernel kernel = cl_utils::LoadKernel("kernel.cl", "copy",
-                                           cl_context.device(),
-                                           cl_context.context());
+  cl_utils::Context cl_context = cl_utils::Context();
+  cl_kernel kernel = cl_utils::LoadKernel("kernel.cl", "copy",
+                                          cl_context.device(),
+                                          cl_context.context());
 
   cv::Mat input_img = cv::imread("/Users/Neo/Desktop/avatar.png");
   // OpenCL only recognizes RGBA
   cv::cvtColor(input_img, input_img, cv::COLOR_BGR2RGBA);
 
+  const cl_image_format format = {CL_RGBA, CL_UNORM_INT8};
+  cl_image_desc desc = {CL_MEM_OBJECT_IMAGE2D, (size_t)input_img.rows,
+                        (size_t)input_img.cols};
 
-  const cl::ImageFormat format(CL_RGBA, CL_UNSIGNED_INT8);
-  cl::Image2D in(cl_context.context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                 format,
-                 input_img.cols, input_img.rows, 0, input_img.data);
-  cl::Image2D out(cl_context.context(), CL_MEM_WRITE_ONLY,
-                  format,
-                  input_img.cols, input_img.rows, 0, NULL);
-  kernel.setArg(0, in);
-  kernel.setArg(1, out);
+  cl_mem in = clCreateImage(cl_context.context(),
+                              CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                              &format,
+                              &desc, input_img.data, NULL);
 
-  //execute kernel
-  cl_context.queue().enqueueNDRangeKernel(kernel,
-                                       cl::NullRange,
-                                       cl::NDRange(input_img.cols, input_img.rows),
-                                       cl::NullRange);
-  //wait for kernel to finish
-  cl_context.queue().finish();
+  cl_mem out = clCreateImage(cl_context.context(), CL_MEM_WRITE_ONLY, &format,
+                               &desc, NULL, NULL);
+
+  clSetKernelArg(kernel, 0,
+                 sizeof(cl_mem),
+                 &in);
+  clSetKernelArg(kernel, 1,
+                 sizeof(cl_mem),
+                 &out);
 
   //start and end coordinates for reading our image
-  cl::size_t<3> origin;
-  cl::size_t<3> size;
-  origin[0] = 0;
-  origin[1] = 0;
-  origin[2] = 0;
-  size[0] = input_img.cols;
-  size[1] = input_img.rows;
-  size[2] = 1;
+  size_t globals[2] = {(size_t)input_img.cols, (size_t)input_img.rows};
 
-  //output png
+  //execute kernel
+  clEnqueueNDRangeKernel(cl_context.queue(),
+                         kernel,
+                         2,
+                         NULL,
+                         globals,
+                         NULL, 0, NULL, NULL);
 
+  //wait for kernel to finish
+  clFinish(cl_context.queue());
+
+  //start and end coordinates for reading our image
+  std::vector<size_t> origin, size;
+  origin.push_back(0);
+  origin.push_back(0);
+  origin.push_back(0);
+  size.push_back(input_img.cols);
+  size.push_back(input_img.rows);
+  size.push_back(1);
+
+    //output png
   //temporary array to store the result from opencl
   auto tmp = new unsigned char[input_img.cols * input_img.rows * 4];
   //CL_TRUE means that it waits for the entire image to be copied before continuing
-  cl_context.queue().enqueueReadImage(out, CL_TRUE, origin, size, 0, 0, tmp);
+  clEnqueueReadImage(cl_context.queue(), out, CL_TRUE,
+                     origin.data(),
+                     size.data(), 0, 0,
+                     tmp, 0, NULL, NULL);
+
 
   cv::Mat outPng;
   cv::Mat(input_img.rows, input_img.cols, CV_8UC4, tmp).copyTo(outPng);

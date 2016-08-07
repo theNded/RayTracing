@@ -5,23 +5,22 @@
 #ifndef RAYTRACING_CLUTILS_CONTEXT_H
 #define RAYTRACING_CLUTILS_CONTEXT_H
 
-#include "cl.hpp"
 #include <vector>
+
+#include <OpenCL/opencl.h>
 
 namespace cl_utils {
 class Context {
 public:
   Context();
-  cl::Device & device();
-  cl::Context & context();
-  cl::CommandQueue &queue();
+  cl_device_id & device();
+  cl_context & context();
+  cl_command_queue & queue();
 
 private:
-  std::vector<cl::Platform> platforms_;
-  std::vector<cl::Device>   devices_;
-  cl::Device                device_;
-  cl::Context               context_;
-  cl::CommandQueue          queue_;
+  cl_device_id     device_;
+  cl_context       context_;
+  cl_command_queue queue_;
 };
 }
 

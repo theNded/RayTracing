@@ -7,13 +7,13 @@
 
 #include <string>
 
-#include "cl.hpp"
+#include <OpenCL/opencl.h>
 
 namespace cl_utils {
-cl::Kernel LoadKernel(std::string kernel_path,
+cl_kernel LoadKernel(std::string kernel_path,
                       std::string program_name,
-                      cl::Device  &device,
-                      cl::Context &context);
+                      cl_device_id  &device,
+                      cl_context &context);
 }
 
 

@@ -27,23 +27,20 @@ std::string ReadKernel(std::string file_path) {
   return kernel_src;
 }
 
-cl::Kernel LoadKernel(std::string file_path,
+cl_kernel LoadKernel(std::string file_path,
                       std::string program_name,
-                      cl::Device  &device,
-                      cl::Context &context) {
-  cl::Program::Sources source;
-  std::string src = ReadKernel(file_path);
-  source.push_back({src.c_str(), src.length()});
+                      cl_device_id  &device,
+                      cl_context &context) {
 
-  cl::Program program(context, source);
-  if (CL_SUCCESS != program.build({device})) {
-    std::cout << " Error building: "
-              << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device)
-              << std::endl;
+  const char* src = ReadKernel(file_path).c_str();
+
+  cl_program program = clCreateProgramWithSource(context, 1, &src, NULL, NULL);
+  if (CL_SUCCESS != clBuildProgram(program, 1, &device, NULL, NULL, NULL)) {
+    std::cout << " Error building !" << std::endl;
     exit(1);
   }
 
-  cl::Kernel kernel(program, program_name.c_str());
+  cl_kernel kernel = clCreateKernel(program, program_name.c_str(), NULL);
   return kernel;
 }
 }
