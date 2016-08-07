@@ -13,7 +13,7 @@ SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -Wall")
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 SET(RayTracing_LIBRARIES "")
 SET(RayTracing_SOURCES
-        src/main.cc
+        src/cl_gl_demo.cc
         src/cl_utils/context.cc
         src/cl_utils/kernel.cc
         src/gl_utils/context.cc

@@ -27,6 +27,8 @@
 #include "cl_utils/kernel.h"
 
 int main(int arg, char* args[]) {
+  gl_utils::Context context("tesxt");
+
   cl_utils::Context cl_context = cl_utils::Context();
   cl_kernel kernel = cl_utils::LoadKernel("kernel.cl", "copy",
                                           cl_context.device(),
@@ -52,7 +54,6 @@ int main(int arg, char* args[]) {
 
   //start and end coordinates for reading our image
   size_t globals[2] = {(size_t)input_img.cols, (size_t)input_img.rows};
-  size_t locals[2] = {8, 8};
   //execute kernel
   clEnqueueNDRangeKernel(cl_context.queue(), kernel, 2, NULL,
                          globals, NULL,
