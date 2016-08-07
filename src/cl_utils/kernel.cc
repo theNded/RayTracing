@@ -28,15 +28,26 @@ std::string ReadKernel(std::string file_path) {
 }
 
 cl_kernel LoadKernel(std::string file_path,
-                      std::string program_name,
-                      cl_device_id  &device,
-                      cl_context &context) {
+                     std::string program_name,
+                     cl_device_id &device,
+                     cl_context &context) {
 
-  const char* src = ReadKernel(file_path).c_str();
+  std::string string_src = ReadKernel(file_path);
+  const char *src = string_src.c_str();
 
   cl_program program = clCreateProgramWithSource(context, 1, &src, NULL, NULL);
   if (CL_SUCCESS != clBuildProgram(program, 1, &device, NULL, NULL, NULL)) {
-    std::cout << " Error building !" << std::endl;
+    std::cout << "Error building !" << std::endl;
+    size_t info_len;
+    char *info;
+
+    clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
+                          0, NULL, &info_len);
+    info = new char[info_len];
+    clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
+                          info_len, info, NULL);
+    std::cout << std::string(info) << std::endl;
+    delete[] info;
     exit(1);
   }
 

@@ -35,65 +35,44 @@ int main(int arg, char* args[]) {
   cv::Mat input_img = cv::imread("/Users/Neo/Desktop/avatar.png");
   // OpenCL only recognizes RGBA
   cv::cvtColor(input_img, input_img, cv::COLOR_BGR2RGBA);
+  size_t w = (size_t)input_img.cols;
+  size_t h = (size_t)input_img.rows;
 
+  // Preparing buffer
   const cl_image_format format = {CL_RGBA, CL_UNORM_INT8};
-  cl_image_desc desc = {CL_MEM_OBJECT_IMAGE2D, (size_t)input_img.rows,
-                        (size_t)input_img.cols};
+  const cl_image_desc desc = {CL_MEM_OBJECT_IMAGE2D, w, h};
 
-  cl_mem in = clCreateImage(cl_context.context(),
-                              CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                              &format,
-                              &desc, input_img.data, NULL);
+  cl_mem in = clCreateImage(cl_context.context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                            &format, &desc, input_img.data, NULL);
+  cl_mem out = clCreateImage(cl_context.context(), CL_MEM_WRITE_ONLY,
+                             &format, &desc, NULL, NULL);
 
-  cl_mem out = clCreateImage(cl_context.context(), CL_MEM_WRITE_ONLY, &format,
-                               &desc, NULL, NULL);
-
-  clSetKernelArg(kernel, 0,
-                 sizeof(cl_mem),
-                 &in);
-  clSetKernelArg(kernel, 1,
-                 sizeof(cl_mem),
-                 &out);
+  clSetKernelArg(kernel, 0, sizeof(cl_mem), &in);
+  clSetKernelArg(kernel, 1, sizeof(cl_mem), &out);
 
   //start and end coordinates for reading our image
   size_t globals[2] = {(size_t)input_img.cols, (size_t)input_img.rows};
-
+  size_t locals[2] = {8, 8};
   //execute kernel
-  clEnqueueNDRangeKernel(cl_context.queue(),
-                         kernel,
-                         2,
-                         NULL,
-                         globals,
-                         NULL, 0, NULL, NULL);
+  clEnqueueNDRangeKernel(cl_context.queue(), kernel, 2, NULL,
+                         globals, NULL,
+                         0, NULL, NULL);
 
   //wait for kernel to finish
   clFinish(cl_context.queue());
 
   //start and end coordinates for reading our image
-  std::vector<size_t> origin, size;
-  origin.push_back(0);
-  origin.push_back(0);
-  origin.push_back(0);
-  size.push_back(input_img.cols);
-  size.push_back(input_img.rows);
-  size.push_back(1);
+  size_t origin[3] = {0, 0, 0};
+  size_t size[3]   = {w, h, 1};
 
-    //output png
-  //temporary array to store the result from opencl
   auto tmp = new unsigned char[input_img.cols * input_img.rows * 4];
-  //CL_TRUE means that it waits for the entire image to be copied before continuing
   clEnqueueReadImage(cl_context.queue(), out, CL_TRUE,
-                     origin.data(),
-                     size.data(), 0, 0,
-                     tmp, 0, NULL, NULL);
-
+                     origin, size,
+                     0, 0, tmp, 0, NULL, NULL);
 
   cv::Mat outPng;
   cv::Mat(input_img.rows, input_img.cols, CV_8UC4, tmp).copyTo(outPng);
   cv::cvtColor(outPng, outPng, cv::COLOR_RGBA2BGR);
-
-  //copy the data from the temp array to the png
-  //std::copy(&tmp[0], &tmp[w * h * 3], outPng.data);
 
   //write the image to file
   cv::imshow("out", outPng);
