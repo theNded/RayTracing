@@ -29,6 +29,7 @@
 int main(int arg, char* args[]) {
   // Init OpenGL
   gl_utils::Context context("CL x GL demo");
+  gl_utils::Control control(context.window());
   GLuint program;
   gl_utils::LoadShaders("cl_gl_vertex.glsl", "cl_gl_fragment.glsl", program);
   GLint sampler = glGetUniformLocation(program, "textureSampler");
@@ -68,8 +69,26 @@ int main(int arg, char* args[]) {
                                           cl_context.context());
   size_t w = 512;
   size_t h = 512;
+  size_t d = 512;
+  size_t size = w * h * d;
 
-  // Prepare output data
+  // Prepare input data
+  FILE *fp = fopen("/Users/Neo/code/VolumeData/hnut512_uint.raw", "rb");
+  unsigned char *volume_data = new unsigned char [size];
+  fread(volume_data, sizeof(unsigned char), size, fp);
+  fclose(fp);
+  for (int i = 0; i < size; ++i) {
+      volume_data[i] *= 127;
+  }
+  const cl_image_format format = {CL_INTENSITY, CL_UNORM_INT8};
+  const cl_image_desc desc = {CL_MEM_OBJECT_IMAGE3D, w, h, d};
+
+  cl_mem volume = clCreateImage(cl_context.context(),
+                                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                &format, &desc,
+                                volume_data, NULL);  // Prepare output data
+  //delete [] volume_data;
+
   GLuint texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
@@ -82,20 +101,25 @@ int main(int arg, char* args[]) {
   cl_mem out = clCreateFromGLTexture(cl_context.context(), CL_MEM_WRITE_ONLY,
                                      GL_TEXTURE_2D, 0, texture, NULL);
 
+#define LOOP
+#ifdef LOOP
   // Main loop
   const size_t globals[2] = {w, h};
-  float t = 0, sign = 1;
+  int t = 0, sign = 1;
   do {
     t += sign;
-    if (t > 512 || t < 0) sign *= -1;
+    if ((sign == 1 && t == 511) || (sign == -1 && t == 1))
+      sign *= -1;
+    std::cout << t << std::endl;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glFinish();
     // OpenCL computation
     clEnqueueAcquireGLObjects(cl_context.queue(), 1,  &out, 0, 0, NULL);
-    clSetKernelArg(kernel, 0, sizeof(cl_mem), &out);
-    clSetKernelArg(kernel, 1, sizeof(float), &t);
+    clSetKernelArg(kernel, 0, sizeof(cl_mem), &volume);
+    clSetKernelArg(kernel, 1, sizeof(cl_mem), &out);
+    clSetKernelArg(kernel, 2, sizeof(int),    &t);
 
     clEnqueueNDRangeKernel(cl_context.queue(), kernel, 2, NULL,
                            globals, NULL,
@@ -121,6 +145,6 @@ int main(int arg, char* args[]) {
 
   // Close OpenGL window and terminate GLFW
   glfwTerminate();
-
+#endif
   return 0;
 }
