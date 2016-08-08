@@ -5,13 +5,10 @@ const sampler_t smp = CLK_NORMALIZED_COORDS_FALSE |
                       CLK_FILTER_LINEAR;
 
 void kernel copy(__read_only image2d_t in,
-                 __write_only image2d_t out)
-{
-	int x = get_global_id(0);
-	int y = get_global_id(1);
-	int2 pos = (int2)(x, y);
-	//uint4 pixel = read_imageui(in, smp, pos);
+                 __write_only image2d_t out) {
+	int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
-	float4 pixel = (float4)(0.75f, 0.37f, 1.0f, 1.0f);
+	// same result for float4 -> uint4, f -> ui
+	float4 pixel = read_imagef(in, smp, pos);
 	write_imagef(out, pos, pixel);
 }

@@ -1,5 +1,5 @@
 //
-// Created by Neo on 16/7/29.
+// Created by Neo on 16/8/8.
 //
 
 #include <stdio.h>
@@ -39,7 +39,7 @@ int main(int arg, char* args[]) {
 
   GLfloat vertices[] = {
       -1, -1,   -1,  1,
-       1,  1,    1, -1
+      1,  1,    1, -1
   };
   GLubyte indices[] = {
       0, 1, 2,
@@ -63,21 +63,11 @@ int main(int arg, char* args[]) {
 
   // Init OpenCL
   cl_utils::Context cl_context = cl_utils::Context();
-  cl_kernel kernel = cl_utils::LoadKernel("copy.cl", "copy",
+  cl_kernel kernel = cl_utils::LoadKernel("raytracing.cl", "raytracing",
                                           cl_context.device(),
                                           cl_context.context());
-
-  // Prepare input data
-  cv::Mat input_img = cv::imread("/Users/Neo/Desktop/avatar.png");
-  // OpenCL only recognizes RGBA
-  cv::cvtColor(input_img, input_img, cv::COLOR_BGR2RGBA);
-  size_t w = (size_t)input_img.cols;
-  size_t h = (size_t)input_img.rows;
-
-  const cl_image_format format = {CL_RGBA, CL_UNORM_INT8};
-  const cl_image_desc desc = {CL_MEM_OBJECT_IMAGE2D, w, h};
-  cl_mem in = clCreateImage(cl_context.context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            &format, &desc, input_img.data, NULL);
+  size_t w = 512;
+  size_t h = 512;
 
   // Prepare output data
   GLuint texture;
@@ -90,20 +80,22 @@ int main(int arg, char* args[]) {
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
   cl_mem out = clCreateFromGLTexture(cl_context.context(), CL_MEM_WRITE_ONLY,
-                                    GL_TEXTURE_2D, 0, texture, NULL);
+                                     GL_TEXTURE_2D, 0, texture, NULL);
 
   // Main loop
-  const size_t globals[2] = {(size_t)input_img.cols, (size_t)input_img.rows};
+  const size_t globals[2] = {w, h};
+  float t = 0, sign = 1;
   do {
+    t += sign;
+    if (t > 512 || t < 0) sign *= -1;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glFinish();
     // OpenCL computation
     clEnqueueAcquireGLObjects(cl_context.queue(), 1,  &out, 0, 0, NULL);
-
-    clSetKernelArg(kernel, 0, sizeof(cl_mem), &in);
-    clSetKernelArg(kernel, 1, sizeof(cl_mem), &out);
+    clSetKernelArg(kernel, 0, sizeof(cl_mem), &out);
+    clSetKernelArg(kernel, 1, sizeof(float), &t);
 
     clEnqueueNDRangeKernel(cl_context.queue(), kernel, 2, NULL,
                            globals, NULL,

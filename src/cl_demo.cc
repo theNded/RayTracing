@@ -30,7 +30,7 @@ int main(int arg, char* args[]) {
   gl_utils::Context context("tesxt");
 
   cl_utils::Context cl_context = cl_utils::Context();
-  cl_kernel kernel = cl_utils::LoadKernel("kernel.cl", "copy",
+  cl_kernel kernel = cl_utils::LoadKernel("copy.cl", "copy",
                                           cl_context.device(),
                                           cl_context.context());
 
