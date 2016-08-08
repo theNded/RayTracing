@@ -40,7 +40,7 @@ int main(int arg, char* args[]) {
                                           cl_context.context());
 #endif
 
-  cv::Mat input_img = cv::imread("/Users/Neo/Desktop/avatar.png");
+  cv::Mat input_img = cv::imread("/Users/Neo/Desktop/white.png");
   // OpenCL only recognizes RGBA
   cv::cvtColor(input_img, input_img, cv::COLOR_BGR2RGBA);
   size_t w = (size_t)input_img.cols;
@@ -49,11 +49,11 @@ int main(int arg, char* args[]) {
   GLuint texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
 #ifdef AAA
@@ -112,7 +112,7 @@ int main(int arg, char* args[]) {
     glFinish();
     status = clEnqueueAcquireGLObjects(cl_context.queue(), 1,  &out, 0, 0,
                                        NULL);
-    std::cout << "Acquire: " << status << std::endl;
+
 
     status = clSetKernelArg(kernel, 0, sizeof(cl_mem), &in);
     status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &out);
@@ -121,12 +121,11 @@ int main(int arg, char* args[]) {
     status = clEnqueueNDRangeKernel(cl_context.queue(), kernel, 2, NULL,
                            globals, NULL,
                            0, NULL, NULL);
-    std::cout << "NDRange: " << status << std::endl;
 
     clFinish(cl_context.queue());
     status = clEnqueueReleaseGLObjects(cl_context.queue(), 1,  &out, 0, 0,
                                        NULL);
-    std::cout << "Release: " << status << std::endl;
+
 
 #endif
     glUseProgram(program);
