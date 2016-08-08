@@ -26,16 +26,19 @@
 #include "cl_utils/context.h"
 #include "cl_utils/kernel.h"
 
+#define AAA
 int main(int arg, char* args[]) {
   gl_utils::Context context("tesxt");
   GLuint program;
   gl_utils::LoadShaders("cl_gl_vertex.glsl", "cl_gl_fragment.glsl", program);
   GLint sampler = glGetUniformLocation(program, "textureSampler");
 
+#ifdef AAA
   cl_utils::Context cl_context = cl_utils::Context();
   cl_kernel kernel = cl_utils::LoadKernel("kernel.cl", "copy",
                                           cl_context.device(),
                                           cl_context.context());
+#endif
 
   cv::Mat input_img = cv::imread("/Users/Neo/Desktop/avatar.png");
   // OpenCL only recognizes RGBA
@@ -46,19 +49,21 @@ int main(int arg, char* args[]) {
   GLuint texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
                w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
+#ifdef AAA
   const cl_image_format format = {CL_RGBA, CL_UNORM_INT8};
   const cl_image_desc desc = {CL_MEM_OBJECT_IMAGE2D, w, h};
   cl_mem in = clCreateImage(cl_context.context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                             &format, &desc, input_img.data, NULL);
   cl_mem out = clCreateFromGLTexture(cl_context.context(), CL_MEM_WRITE_ONLY,
                                     GL_TEXTURE_2D, 0, texture, NULL);
+#endif
 
   GLuint vao;
   glGenVertexArrays(1, &vao);
@@ -102,21 +107,28 @@ int main(int arg, char* args[]) {
   do {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+#ifdef AAA
+    cl_int status;
     glFinish();
-    clEnqueueAcquireGLObjects(cl_context.queue(), 1,  &out, 0, 0, NULL);
+    status = clEnqueueAcquireGLObjects(cl_context.queue(), 1,  &out, 0, 0,
+                                       NULL);
+    std::cout << "Acquire: " << status << std::endl;
 
-    clSetKernelArg(kernel, 1, sizeof(cl_mem), &in);
-    clSetKernelArg(kernel, 1, sizeof(cl_mem), &out);
+    status = clSetKernelArg(kernel, 0, sizeof(cl_mem), &in);
+    status = clSetKernelArg(kernel, 1, sizeof(cl_mem), &out);
 
     size_t globals[2] = {(size_t)input_img.cols, (size_t)input_img.rows};
-    clEnqueueNDRangeKernel(cl_context.queue(), kernel, 2, NULL,
+    status = clEnqueueNDRangeKernel(cl_context.queue(), kernel, 2, NULL,
                            globals, NULL,
                            0, NULL, NULL);
+    std::cout << "NDRange: " << status << std::endl;
 
     clFinish(cl_context.queue());
-    clEnqueueReleaseGLObjects(cl_context.queue(), 1,  &out, 0, 0, NULL);
+    status = clEnqueueReleaseGLObjects(cl_context.queue(), 1,  &out, 0, 0,
+                                       NULL);
+    std::cout << "Release: " << status << std::endl;
 
+#endif
     glUseProgram(program);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
