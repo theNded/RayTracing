@@ -6,11 +6,12 @@
 #define RAYTRACING_SHADER_H
 
 #include <string>
+
 #include <GL/glew.h>
 
 namespace gl_utils {
 GLint LoadShaders(std::string vertex_shader_path,
                   std::string fragment_shader_path,
-                  GLuint &program_id);
+                  GLuint     &program_id);
 }
 #endif //RAYTRACING_SHADER_H

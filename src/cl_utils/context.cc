@@ -5,17 +5,17 @@
 #include "cl_utils/context.h"
 
 #include <iostream>
+
 #include <OpenGL/OpenGL.h>
-#include <GLFW/glfw3.h>
 
 namespace cl_utils {
 
 // Assume there is at least 1 platform and 1 device on it
 Context::Context() {
   size_t info_length;
-  char *info;
+  char  *info;
 
-  // Platform init and info
+  // Platform
   cl_platform_id platform;
   clGetPlatformIDs(1, &platform, NULL);
 
@@ -25,7 +25,8 @@ Context::Context() {
   std::cout << "Platform name          : " << std::string(info) << std::endl;
   delete[] info;
 
-  // Context query and init
+  // Context
+  // If not Apple, use khr etc
   const cl_context_properties props[] = {
       CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE,
       (cl_context_properties) CGLGetShareGroup(CGLGetCurrentContext()),
@@ -34,15 +35,10 @@ Context::Context() {
   context_ = clCreateContextFromType(props, CL_DEVICE_TYPE_GPU, 0, 0, NULL);
 
   // Device query and init
-  if (CL_SUCCESS != clGetGLContextInfoAPPLE(context_, CGLGetCurrentContext(),
-                                            CL_CGL_DEVICE_FOR_CURRENT_VIRTUAL_SCREEN_APPLE,
-                                            sizeof(cl_device_id), &device_, NULL)) {
-    std::cout << "Failed to retrieve device." << std::endl;
-    exit(1);
-  }
-
-  // if not apple
-  // clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device_, NULL);
+  // If not Apple, use clGetDeviceIDs etc
+  clGetGLContextInfoAPPLE(context_, CGLGetCurrentContext(),
+                          CL_CGL_DEVICE_FOR_CURRENT_VIRTUAL_SCREEN_APPLE,
+                          sizeof(cl_device_id), &device_, NULL);
 
   clGetDeviceInfo(device_, CL_DEVICE_NAME, 0, NULL, &info_length);
   info = new char[info_length];
@@ -80,7 +76,7 @@ Context::Context() {
                   sizeof(component_units), &component_units, NULL);
   std::cout << "Parallel compute units : " << component_units << std::endl;
 
-  // Queue init
+  // Command queue
   queue_   = clCreateCommandQueue(context_, device_, 0, NULL);
 }
 

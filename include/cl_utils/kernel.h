@@ -10,10 +10,10 @@
 #include <OpenCL/opencl.h>
 
 namespace cl_utils {
-cl_kernel LoadKernel(std::string kernel_path,
-                      std::string program_name,
-                      cl_device_id  &device,
-                      cl_context &context);
+cl_kernel LoadKernel(std::string   kernel_path,
+                     std::string   kernel_name,
+                     cl_device_id &device,
+                     cl_context   &context);
 }
 
 

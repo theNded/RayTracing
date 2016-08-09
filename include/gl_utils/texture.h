@@ -10,6 +10,6 @@
 
 namespace gl_utils {
 GLint LoadTexture(std::string texture_path,
-                  GLuint &texture_id);
+                  GLuint     &texture_id);
 }
 #endif //RAYTRACING_TEXTURE_H

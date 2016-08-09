@@ -13,9 +13,10 @@ namespace cl_utils {
 class Context {
 public:
   Context();
-  cl_device_id & device();
-  cl_context & context();
-  cl_command_queue & queue();
+
+  cl_device_id     &device();
+  cl_context       &context();
+  cl_command_queue &queue();
 
 private:
   cl_device_id     device_;

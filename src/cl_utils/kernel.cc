@@ -10,9 +10,9 @@
 
 namespace cl_utils {
 
-std::string ReadKernel(std::string file_path) {
+std::string ReadKernel(std::string kernel_path) {
   std::string kernel_src = "";
-  std::ifstream kernel_stream(file_path, std::ios::in);
+  std::ifstream kernel_stream(kernel_path, std::ios::in);
   if (kernel_stream.is_open()) {
     for (std::string line; std::getline(kernel_stream, line);) {
       kernel_src += line + "\n";
@@ -27,12 +27,12 @@ std::string ReadKernel(std::string file_path) {
   return kernel_src;
 }
 
-cl_kernel LoadKernel(std::string file_path,
-                     std::string program_name,
+cl_kernel LoadKernel(std::string kernel_path,
+                     std::string kernel_name,
                      cl_device_id &device,
                      cl_context &context) {
 
-  std::string string_src = ReadKernel(file_path);
+  std::string string_src = ReadKernel(kernel_path);
   const char *src = string_src.c_str();
 
   cl_program program = clCreateProgramWithSource(context, 1, &src, NULL, NULL);
@@ -51,7 +51,7 @@ cl_kernel LoadKernel(std::string file_path,
     exit(1);
   }
 
-  cl_kernel kernel = clCreateKernel(program, program_name.c_str(), NULL);
+  cl_kernel kernel = clCreateKernel(program, kernel_name.c_str(), NULL);
   return kernel;
 }
 }

@@ -11,13 +11,11 @@
 namespace gl_utils {
 class Control {
 public:
-  glm::mat4 view_mat();
-
-  glm::mat4 projection_mat();
-
+  Control(GLFWwindow *window);
   void UpdateCameraPose();
 
-  Control(GLFWwindow *window);
+  glm::mat4 view_mat();
+  glm::mat4 projection_mat();
 
 private:
   // Descartes-system
