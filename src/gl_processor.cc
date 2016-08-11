@@ -62,6 +62,13 @@ void GLProcessor::Render() {
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, 0);
 }
 
+GLProcessor::~GLProcessor() {
+  glDeleteTextures(1, &texture_);
+  glDeleteBuffers(2, vbo_);
+  glDeleteVertexArrays(1, &vao_);
+  glDeleteProgram(program_);
+}
+
 GLuint & GLProcessor::texture() {
   return texture_;
 }

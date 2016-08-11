@@ -17,6 +17,7 @@ public:
   GLProcessor(std::string vertex_shader_path,
               std::string fragment_shader_path,
               std::string sampler_name);
+  ~GLProcessor();
   void Init(GLFWwindow *window, int width, int height);
   void Render();
 

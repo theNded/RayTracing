@@ -17,6 +17,7 @@ public:
   CLProcessor(std::string        kernel_path,
               std::string        kernel_name,
               cl_utils::Context *cl_context);
+  ~CLProcessor();
 
   void Init(void *volume_data, GLuint texture);
   void Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,

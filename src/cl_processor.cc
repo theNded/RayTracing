@@ -51,3 +51,13 @@ void CLProcessor::Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
   clFinish(context_->queue());
   clEnqueueReleaseGLObjects(context_->queue(), 1,  &image_, 0, 0, NULL);
 }
+
+CLProcessor::~CLProcessor() {
+  clReleaseMemObject(volume_);
+  clReleaseMemObject(image_);
+
+  // TODO: change api of LoadKernel and
+  // allow "program_" to involve more than 1 kernel
+  // clRelease(program_);
+  clReleaseKernel(kernel_);
+}

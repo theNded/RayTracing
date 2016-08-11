@@ -29,8 +29,8 @@ std::string ReadKernel(std::string kernel_path) {
 
 cl_kernel LoadKernel(std::string kernel_path,
                      std::string kernel_name,
-                     cl_device_id &device,
-                     cl_context &context) {
+                     cl_device_id & device,
+                     cl_context   & context) {
 
   std::string string_src = ReadKernel(kernel_path);
   const char *src = string_src.c_str();
@@ -52,6 +52,7 @@ cl_kernel LoadKernel(std::string kernel_path,
   }
 
   cl_kernel kernel = clCreateKernel(program, kernel_name.c_str(), NULL);
+
   return kernel;
 }
 }

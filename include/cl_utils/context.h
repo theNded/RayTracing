@@ -13,6 +13,7 @@ namespace cl_utils {
 class Context {
 public:
   Context();
+  ~Context();
 
   cl_device_id     &device();
   cl_context       &context();

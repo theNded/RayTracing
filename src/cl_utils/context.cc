@@ -80,6 +80,12 @@ Context::Context() {
   queue_   = clCreateCommandQueue(context_, device_, 0, NULL);
 }
 
+Context::~Context() {
+  clReleaseCommandQueue(queue_);
+  clReleaseContext(context_);
+  clReleaseDevice(device_);
+}
+
 cl_device_id & Context::device() {
   return device_;
 }
