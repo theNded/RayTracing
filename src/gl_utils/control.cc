@@ -18,12 +18,13 @@ Control::Control(GLFWwindow *window, int width, int height) {
   width_  = width;
   height_ = height;
 
-  position_ = glm::vec3(0, 0, 5);
+  position_         = glm::vec3(0, 0, 5);
   horizontal_angle_ = (float)M_PI;
-  vertical_angle_ = 0.0f;
-  fov_ = 45.0f;
-  move_speed_ = 3.0f;
-  rotate_speed_ = 0.005f;
+  vertical_angle_   = 0.0f;
+  // In later glm versions, fov_ = glm::radians(45.0f)
+  fov_              = 45.0f;
+  move_speed_       = 3.0f;
+  rotate_speed_     = 0.005f;
 }
 
 glm::mat4 Control::view_mat() {
@@ -37,9 +38,8 @@ glm::mat4 Control::projection_mat() {
 void Control::UpdateCameraPose() {
   // glfwGetTime is called only once, the first time this function is called
   static double last_time = glfwGetTime();
-
-  double current_time = glfwGetTime();
-  float delta_time = float(current_time - last_time);
+  double current_time     = glfwGetTime();
+  float delta_time        = float(current_time - last_time);
 
   // Get mouse position
   double xpos, ypos;
@@ -47,8 +47,8 @@ void Control::UpdateCameraPose() {
   glfwSetCursorPos(window_, width_ / 2, height_ / 2);
 
   // Compute new orientation
-  horizontal_angle_ += rotate_speed_ * float(width_ / 2 - xpos);
-  vertical_angle_ += rotate_speed_ * float(height_ / 2 - ypos);
+  horizontal_angle_ += rotate_speed_ * float(width_  / 2 - xpos);
+  vertical_angle_   += rotate_speed_ * float(height_ / 2 - ypos);
 
   glm::vec3 look_direction(
       cos(vertical_angle_) * sin(horizontal_angle_),

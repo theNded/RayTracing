@@ -23,7 +23,7 @@ GLProcessor::GLProcessor(std::string vertex_shader_file,
   sampler_ = glGetUniformLocation(program_, sampler_name.c_str());
 }
 
-void GLProcessor::Init(GLFWwindow *window) {
+void GLProcessor::Init(GLFWwindow *window, int width, int height) {
   glGenVertexArrays(1, &vao_);
   glBindVertexArray(vao_);
 
@@ -47,7 +47,7 @@ void GLProcessor::Init(GLFWwindow *window) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-               512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+               width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 }
