@@ -52,24 +52,23 @@ int main(int arg, char* args[]) {
   CLProcessor cl_processor("raytracing.cl", "raytracing", &cl_context);
   cl_processor.Init(volume_data, gl_processor.texture());
 
-
   delete [] volume_data;
 
-  // Main loop
-  int t = 0, sign = 1;
   do {
     gl_control.UpdateCameraPose();
-    std::cout << glm::to_string(gl_control.projection_mat())
-              << std::endl;
-    t += sign;
-    if ((sign == 1 && t == 511) || (sign == -1 && t == 1))
-      sign *= -1;
-    std::cout << t << std::endl;
+    glm::mat4 v = gl_control.view_mat();
+    glm::mat4 v_inv = glm::inverse(v);
+    glm::mat4 p = gl_control.projection_mat();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glFinish();
-    // OpenCL computation
-    cl_processor.Compute(t);
+
+    cl_float3 r1 = {v_inv[0][0], v_inv[1][0], v_inv[2][0]};
+    cl_float3 r2 = {v_inv[0][1], v_inv[1][1], v_inv[2][1]};
+    cl_float3 r3 = {v_inv[0][2], v_inv[1][2], v_inv[2][2]};
+    cl_float3 camera = {v_inv[3][0], v_inv[3][1], v_inv[3][2]};
+    cl_float2 f = {p[0][0], p[1][1]};
+    cl_processor.Compute(r1, r2, r3, camera, f);
     gl_processor.Render();
 
     glfwSwapBuffers(gl_context.window());

@@ -30,11 +30,18 @@ void CLProcessor::Init(void *volume_data, GLuint texture) {
                                  GL_TEXTURE_2D, 0, texture, NULL);
 }
 
-void CLProcessor::Compute(int t) {
+void CLProcessor::Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
+                          cl_float3 camera, cl_float2 f) {
   clEnqueueAcquireGLObjects(context_->queue(), 1,  &image_, 0, 0, NULL);
-  clSetKernelArg(kernel_, 0, sizeof(cl_mem), &volume_);
-  clSetKernelArg(kernel_, 1, sizeof(cl_mem), &image_);
-  clSetKernelArg(kernel_, 2, sizeof(int),    &t);
+  clSetKernelArg(kernel_, 0, sizeof(cl_mem),    &volume_);
+  clSetKernelArg(kernel_, 1, sizeof(cl_mem),    &image_);
+
+  clSetKernelArg(kernel_, 2, sizeof(cl_float3), &r1);
+  clSetKernelArg(kernel_, 3, sizeof(cl_float3), &r2);
+  clSetKernelArg(kernel_, 4, sizeof(cl_float3), &r3);
+
+  clSetKernelArg(kernel_, 5, sizeof(cl_float3), &camera);
+  clSetKernelArg(kernel_, 6, sizeof(cl_float2),  &f);
 
   clEnqueueNDRangeKernel(context_->queue(), kernel_, 2, NULL,
                          kGlobalWorkSize, NULL,

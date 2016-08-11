@@ -19,7 +19,9 @@ public:
               cl_utils::Context *cl_context);
 
   void Init(void *volume_data, GLuint texture);
-  void Compute(int t);
+  void Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
+               cl_float3 camera,
+               cl_float2 f);
 
 private:
   static const cl_image_format kFormat;

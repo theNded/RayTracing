@@ -28,7 +28,7 @@
 
 int main(int arg, char* args[]) {
   // Init OpenGL
-  gl_utils::Context context("CL x GL demo");
+  gl_utils::Context context("CL x GL demo", 512, 512);
   GLuint program;
   gl_utils::LoadShaders("cl_gl_vertex.glsl", "cl_gl_fragment.glsl", program);
   GLint sampler = glGetUniformLocation(program, "textureSampler");
