@@ -7,7 +7,9 @@
 #include <iostream>
 
 namespace gl_utils {
-Context::Context(std::string window_name) {
+Context::Context(std::string window_name, int width, int height) {
+  width_ = width;
+  height_ = height;
   Init(window_name);
 }
 
@@ -25,7 +27,7 @@ int Context::Init(std::string window_name) {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
   // Open a window and create its OpenGL context
-  window_ = glfwCreateWindow(1024, 768, window_name.c_str(), NULL, NULL);
+  window_ = glfwCreateWindow(width_, height_, window_name.c_str(), NULL, NULL);
   if (window_ == NULL) {
     std::cerr << "Failed to open GLFW window." << std::endl;
     glfwTerminate();
@@ -36,6 +38,8 @@ int Context::Init(std::string window_name) {
   // Ensure we can capture the escape key being pressed below
   glfwSetInputMode(window_, GLFW_STICKY_KEYS, GL_TRUE);
   glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwPollEvents();
+  glfwSetCursorPos(window_, width_ / 2, height_ / 2);
 
   // Initialize GLEW
   glewExperimental = GL_TRUE; // Needed for core profile
@@ -50,5 +54,13 @@ int Context::Init(std::string window_name) {
 
 GLFWwindow *Context::window() const {
   return window_;
+}
+
+int Context::width() {
+  return width_;
+}
+
+int Context::height() {
+  return height_;
 }
 }

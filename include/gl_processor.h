@@ -8,6 +8,7 @@
 #include <string>
 
 #include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 #include "gl_utils/shader.h"
 
@@ -16,7 +17,7 @@ public:
   GLProcessor(std::string vertex_shader_path,
               std::string fragment_shader_path,
               std::string sampler_name);
-  void Init();
+  void Init(GLFWwindow *window);
   void Render();
 
   GLuint & texture();

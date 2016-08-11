@@ -23,7 +23,7 @@ GLProcessor::GLProcessor(std::string vertex_shader_file,
   sampler_ = glGetUniformLocation(program_, sampler_name.c_str());
 }
 
-void GLProcessor::Init() {
+void GLProcessor::Init(GLFWwindow *window) {
   glGenVertexArrays(1, &vao_);
   glBindVertexArray(vao_);
 

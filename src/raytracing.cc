@@ -3,18 +3,17 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include <opencv2/opencv.hpp>
-#include <vector>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "gl_utils/context.h"
 #include "gl_utils/control.h"
@@ -42,11 +41,12 @@ int main(int arg, char* args[]) {
   fclose(fp);
 
   // Init OpenGL
-  gl_utils::Context gl_context("CL x GL demo");
-  gl_utils::Control gl_control(gl_context.window());
+  gl_utils::Context gl_context("CL x GL demo", 512, 512);
+  gl_utils::Control gl_control(gl_context.window(),
+                               gl_context.width(), gl_context.height());
   GLProcessor gl_processor("cl_gl_vertex.glsl", "cl_gl_fragment.glsl",
                            "texture_sampler");
-  gl_processor.Init();
+  gl_processor.Init(gl_context.window());
 
   cl_utils::Context cl_context = cl_utils::Context();
   CLProcessor cl_processor("raytracing.cl", "raytracing", &cl_context);
@@ -58,6 +58,9 @@ int main(int arg, char* args[]) {
   // Main loop
   int t = 0, sign = 1;
   do {
+    gl_control.UpdateCameraPose();
+    std::cout << glm::to_string(gl_control.projection_mat())
+              << std::endl;
     t += sign;
     if ((sign == 1 && t == 511) || (sign == -1 && t == 1))
       sign *= -1;

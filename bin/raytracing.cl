@@ -11,7 +11,7 @@ void kernel raytracing(__read_only  image3d_t volume,
     int x = get_global_id(0);
     int y = get_global_id(1);
     int2 pos = (int2)(x, y);
-    int4 vpos = (int4)(x, y, t, 0);
+    int4 vpos = (int4)(t, x, y, 0);
 
     float4 pixel = read_imagef(volume, sampler, vpos);
     pixel.x = 0.0f;

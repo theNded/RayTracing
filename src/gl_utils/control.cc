@@ -4,20 +4,22 @@
 
 #include "gl_utils/control.h"
 
+#include <cmath>
+#include <iostream>
+
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <iostream>
-
 namespace gl_utils {
-Control::Control(GLFWwindow *window) {
+Control::Control(GLFWwindow *window, int width, int height) {
   window_ = window;
+  width_  = width;
+  height_ = height;
 
   position_ = glm::vec3(0, 0, 5);
-
-  horizontal_angle_ = 3.14f;
+  horizontal_angle_ = (float)M_PI;
   vertical_angle_ = 0.0f;
   fov_ = 45.0f;
   move_speed_ = 3.0f;
@@ -42,11 +44,11 @@ void Control::UpdateCameraPose() {
   // Get mouse position
   double xpos, ypos;
   glfwGetCursorPos(window_, &xpos, &ypos);
-  glfwSetCursorPos(window_, 1024 / 2, 768 / 2);
+  glfwSetCursorPos(window_, width_ / 2, height_ / 2);
 
   // Compute new orientation
-  horizontal_angle_ += rotate_speed_ * float(1024 / 2 - xpos);
-  vertical_angle_ += rotate_speed_ * float(768 / 2 - ypos);
+  horizontal_angle_ += rotate_speed_ * float(width_ / 2 - xpos);
+  vertical_angle_ += rotate_speed_ * float(height_ / 2 - ypos);
 
   glm::vec3 look_direction(
       cos(vertical_angle_) * sin(horizontal_angle_),
@@ -59,9 +61,9 @@ void Control::UpdateCameraPose() {
       cos(vertical_angle_) * cos(horizontal_angle_));
 
   glm::vec3 right = glm::vec3(
-      sin(horizontal_angle_ - 3.14f / 2.0f),
+      sin(horizontal_angle_ - M_PI_2),
       0,
-      cos(horizontal_angle_ - 3.14f / 2.0f));
+      cos(horizontal_angle_ - M_PI_2));
 
   glm::vec3 up = glm::cross(right, look_direction);
 
@@ -84,7 +86,8 @@ void Control::UpdateCameraPose() {
     position_.y -= move_speed_ * delta_time;
   }
 
-  projection_mat_ = glm::perspective(fov_, 4.0f / 3.0f, 0.1f, 100.0f);
+  projection_mat_ = glm::perspective(fov_, (float)width_ / (float)height_,
+                                     0.1f, 100.0f);
   // Camera matrix
   view_mat_ = glm::lookAt(
       position_,

@@ -11,7 +11,7 @@
 namespace gl_utils {
 class Control {
 public:
-  Control(GLFWwindow *window);
+  Control(GLFWwindow *window, int width, int height);
   void UpdateCameraPose();
 
   glm::mat4 view_mat();
@@ -31,8 +31,10 @@ private:
   // Interaction parameters
   float rotate_speed_;
   float move_speed_;
-  GLFWwindow *window_;
 
+  int width_;
+  int height_;
+  GLFWwindow *window_;
 };
 }
 
