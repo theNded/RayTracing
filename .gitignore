@@ -31,4 +31,6 @@
 # CLion
 .idea/
 *.xml
+RayTracing
+
 bin/RayTracing

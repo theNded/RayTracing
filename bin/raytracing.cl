@@ -33,7 +33,9 @@ void kernel raytracing(__read_only  image3d_t volume,
                        __write_only image2d_t image,
                        float3 r1, float3 r2, float3 r3,
                        float3 camera,
-                       float2 f) {
+                       float2 f,
+                       float3 range) {
+    range *= 0.5f;
     int2 wh = (int2)(get_global_size(0), get_global_size(1));
     int2 uv = (int2)(get_global_id(0), get_global_id(1));
 
@@ -66,14 +68,14 @@ void kernel raytracing(__read_only  image3d_t volume,
       float3 p = camera + t * direction_world;
 
       // (-1.0f, 1.0f) -> (0.0f, 1.0f) -> (0, 512)
-      int4 volume_index = (int4)((int)((p.x + 1) * 256),
-                                 (int)((p.y + 1) * 256),
-                                 (int)((p.z + 1) * 256),
+      int4 volume_index = (int4)((int)((p.x + 1) * range.x),
+                                 (int)((p.y + 1) * range.y),
+                                 (int)((p.z + 1) * range.z),
                                  1);
 
       color += read_imagef(volume, sampler, volume_index);
       t += step_size;
       if (t > t_far) break;
     }
-    write_imagef(image, uv, (float4)(0.0f, color.y, 0.0f, 1.0f));
+    write_imagef(image, uv, 0.02 * (float4)(0.0f, color.y, 0.0f, 1.0f));
 }

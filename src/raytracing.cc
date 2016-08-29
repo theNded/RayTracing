@@ -26,14 +26,18 @@
 #include "gl_processor.h"
 #include "cl_processor.h"
 
-int main(int arg, char* args[]) {
-  // Data preparation
-  size_t size = 512 * 512 * 512;
-  char *volume_data = new char [size];
-  std::ifstream volume_data_file(
-      "/Users/Neo/code/VolumeData/hnut512_uint.raw",
-      std::ios::in | std::ios::binary);
-  volume_data_file.read(volume_data, size);
+// ./raytracing filename width height depth sizeof_unit
+int main(int argc, char* args[]) {
+  const char *filename   = args[1];
+  const size_t width     = (size_t)atoi(args[2]);
+  const size_t height    = (size_t)atoi(args[3]);
+  const size_t depth     = (size_t)atoi(args[4]);
+  const size_t unit_size = (size_t)atoi(args[5]);
+  const size_t array_size = width * height * depth * unit_size;
+  char *volume_data = new char [array_size];
+
+  std::ifstream volume_data_file(filename, std::ios::in | std::ios::binary);
+  volume_data_file.read(volume_data, array_size);
 
   // Init OpenGL. This step must be ahead of OpenCL
   gl_utils::Context gl_context("CL x GL demo", 512, 512);
@@ -53,6 +57,7 @@ int main(int arg, char* args[]) {
                            "raytracing",
                            &cl_context);
   cl_processor.Init(volume_data,
+                    width, height, depth, unit_size,
                     gl_processor.texture());
 
   delete [] volume_data;

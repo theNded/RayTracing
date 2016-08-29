@@ -19,7 +19,9 @@ public:
               cl_utils::Context *cl_context);
   ~CLProcessor();
 
-  void Init(void *volume_data, GLuint texture);
+  void Init(void *volume_data,
+            size_t width, size_t height, size_t depth, size_t unit_size,
+            GLuint texture);
   void Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
                cl_float3 camera,
                cl_float2 f);
@@ -33,6 +35,8 @@ private:
   cl_kernel          kernel_;
   cl_mem             volume_;
   cl_mem             image_;
+
+  cl_float3          range_;
 };
 
 
