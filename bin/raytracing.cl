@@ -1,7 +1,6 @@
 #pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable
 
-#define max_iteration   512
-#define step_size       0.01f
+#define max_iteration   1024
 
 const sampler_t sampler   = CLK_NORMALIZED_COORDS_FALSE |
                             CLK_ADDRESS_CLAMP_TO_EDGE |
@@ -35,6 +34,7 @@ void kernel raytracing(__read_only  image3d_t volume,
                        float3 camera,
                        float2 f,
                        float3 range) {
+    float step_size = 1.0f / range.x;
     range *= 0.5f;
     int2 wh = (int2)(get_global_size(0), get_global_size(1));
     int2 uv = (int2)(get_global_id(0), get_global_id(1));
@@ -64,7 +64,8 @@ void kernel raytracing(__read_only  image3d_t volume,
     float t = t_near;
     float4 color = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
 
-    for (int i = 0; i < max_iteration; ++i) {
+    int i;
+    for (i = 0; i < max_iteration; ++i) {
       float3 p = camera + t * direction_world;
 
       // (-1.0f, 1.0f) -> (0.0f, 1.0f) -> (0, 512)
@@ -77,5 +78,5 @@ void kernel raytracing(__read_only  image3d_t volume,
       t += step_size;
       if (t > t_far) break;
     }
-    write_imagef(image, uv, 0.02 * (float4)(0.0f, color.y, 0.0f, 1.0f));
+    write_imagef(image, uv, 0.006 * (float4)(0.0f, color.y, 0.0f, 1.0f));
 }

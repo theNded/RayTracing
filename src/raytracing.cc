@@ -28,11 +28,13 @@
 
 // ./raytracing filename width height depth sizeof_unit
 int main(int argc, char* args[]) {
-  const char *filename   = args[1];
-  const size_t width     = (size_t)atoi(args[2]);
-  const size_t height    = (size_t)atoi(args[3]);
-  const size_t depth     = (size_t)atoi(args[4]);
-  const size_t unit_size = (size_t)atoi(args[5]);
+  bool with_args = (argc == 6);
+  const char *filename   = with_args ? args[1]
+                                     : "/Users/Neo/code/Data/Bonsai.raw";
+  const size_t width     = with_args ? (size_t)atoi(args[2]) : 512;
+  const size_t height    = with_args ? (size_t)atoi(args[3]) : 512;
+  const size_t depth     = with_args ? (size_t)atoi(args[4]) : 189;
+  const size_t unit_size = with_args ? (size_t)atoi(args[5]) : 2;
   const size_t array_size = width * height * depth * unit_size;
   char *volume_data = new char [array_size];
 
