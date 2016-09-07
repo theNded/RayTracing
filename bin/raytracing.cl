@@ -1,7 +1,5 @@
 #pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable
 
-#define max_iteration   1024
-
 const sampler_t sampler   = CLK_NORMALIZED_COORDS_FALSE |
                             CLK_ADDRESS_CLAMP_TO_EDGE |
                             CLK_FILTER_LINEAR;
@@ -31,11 +29,8 @@ int intersect_box(float3 origin,  float3 direction,
 void kernel raytracing(__read_only  image3d_t volume,
                        __write_only image2d_t image,
                        float3 r1, float3 r2, float3 r3,
-                       float3 camera,
-                       float2 f,
-                       float3 range) {
-    float step_size = 1.0f / range.x;
-    range *= 0.5f;
+                       float3 camera, float2 f, float3 range) {
+    float3 grid_size = 2.0f / range;
     int2 wh = (int2)(get_global_size(0), get_global_size(1));
     int2 uv = (int2)(get_global_id(0), get_global_id(1));
 
@@ -47,6 +42,12 @@ void kernel raytracing(__read_only  image3d_t volume,
     float3 direction_world = (float3)(dot(direction_camera, r1),
                                       dot(direction_camera, r2),
                                       dot(direction_camera, r3));
+    direction_world.x = (fabs(direction_world.x) < 1e-10)
+    ? 1e-10 : direction_world.x;
+    direction_world.y = (fabs(direction_world.y) < 1e-10)
+    ? 1e-10 : direction_world.y;
+    direction_world.z = (fabs(direction_world.z) < 1e-10)
+    ? 1e-10 : direction_world.z;
 
     float3 box_min = (float3)(-1.0f, -1.0f, -1.0f);
     float3 box_max = (float3)( 1.0f,  1.0f,  1.0f);
@@ -63,20 +64,19 @@ void kernel raytracing(__read_only  image3d_t volume,
     t_near = (t_near < 0) ? 0 : t_near;
     float t = t_near;
     float4 color = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-
-    int i;
-    for (i = 0; i < max_iteration; ++i) {
+    int max_iteration = (int)(range.x + range.y + range.z);
+    float step_size   = 0.8f * grid_size.x;
+    for (int i = 0; i < max_iteration; ++i) {
       float3 p = camera + t * direction_world;
 
-      // (-1.0f, 1.0f) -> (0.0f, 1.0f) -> (0, 512)
-      int4 volume_index = (int4)((int)((p.x + 1) * range.x),
-                                 (int)((p.y + 1) * range.y),
-                                 (int)((p.z + 1) * range.z),
+      int4 volume_index = (int4)((int)((p.x + 1) / grid_size.x),
+                                 (int)((p.y + 1) / grid_size.y),
+                                 (int)((p.z + 1) / grid_size.z),
                                  1);
 
       color += read_imagef(volume, sampler, volume_index);
       t += step_size;
       if (t > t_far) break;
     }
-    write_imagef(image, uv, 0.006 * (float4)(0.0f, color.y, 0.0f, 1.0f));
+    write_imagef(image, uv, 0.01f * (float4)(0.0f, color.y, 0.0f, 1.0f));
 }
