@@ -1,8 +1,8 @@
 #pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable
 
-const sampler_t sampler   = CLK_NORMALIZED_COORDS_FALSE |
-                            CLK_ADDRESS_CLAMP_TO_EDGE |
-                            CLK_FILTER_LINEAR;
+const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE |
+                          CLK_ADDRESS_CLAMP_TO_EDGE |
+                          CLK_FILTER_LINEAR;
 
 int intersect_box(float3 origin,  float3 direction,
                   float3 box_min, float3 box_max,
@@ -66,24 +66,35 @@ void kernel raytracing(__read_only  image3d_t volume,
 
     // Ray-casting
     // Constants
+    float t_epsilon = 0.0001;
     float3 voxel_size = 2.0f / range;
-    float t_step   = 0.8f * voxel_size.x;
     int max_iteration = (int)(range.x + range.y + range.z);
 
     // Variables
-    float t = (t_near < 0) ? 0 : t_near;
     float4 color = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
+    float t = (t_near < 0) ? 0 : t_near;
+    float3 p = camera + (t + t_epsilon) * dir_world;
 
-    for (;;) {
-      float3 p = camera + t * dir_world;
-      int4 volume_index = (int4)((int)((p.x - (-1.0f)) / voxel_size.x),
-                                 (int)((p.y - (-1.0f)) / voxel_size.y),
-                                 (int)((p.z - (-1.0f)) / voxel_size.z),
-                                 1);
+    while (bound_min.x < p.x && p.x < bound_max.x
+    &&     bound_min.y < p.y && p.y < bound_max.y
+    &&     bound_min.z < p.z && p.z < bound_max.z) {
+        int4 voxel_index = (int4)((int)((p.x - (-1.0f)) / voxel_size.x),
+                                  (int)((p.y - (-1.0f)) / voxel_size.y),
+                                  (int)((p.z - (-1.0f)) / voxel_size.z),
+                                  1);
+        color += read_imagef(volume, sampler, voxel_index);
 
-      color += read_imagef(volume, sampler, volume_index);
-      t += t_step;
-      if (t > t_far) break;
+        float3 voxel_min = (float3)(-1.0f, -1.0f, -1.0f)
+            + voxel_size * (float3)(voxel_index.x,
+                                    voxel_index.y,
+                                    voxel_index.z);
+        float3 voxel_max = voxel_min + voxel_size;
+        float t_voxel_near, t_voxel_far;
+        int voxel_hit = intersect_box(p, dir_world,
+                                      voxel_min, voxel_max,
+                                      &t_voxel_near, &t_voxel_far);
+        t_voxel_far = t_voxel_far < t_epsilon ? t_epsilon : t_voxel_far;
+        p = p + (t_voxel_far + t_epsilon) * dir_world;
     }
     write_imagef(image, uv, 0.01f * (float4)(0.0f, color.y, 0.0f, 1.0f));
 }
