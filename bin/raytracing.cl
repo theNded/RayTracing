@@ -69,12 +69,13 @@ void kernel raytracing(__read_only  image3d_t volume,
     // Ray-casting
     // Constants
     float3 voxel_size = 2.0f / range;
-    float t_step   = 0.8f * voxel_size.x;
+    float t_step      = 0.8f * voxel_size.x;
     int max_iteration = (int)(range.x + range.y + range.z);
 
     // Variables
     float t = (t_near < 0) ? 0 : t_near;
-    float4 color = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+    float4 dst = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+    float4 src;
 
     int cnt = 0;
     for (;;cnt ++) {
@@ -85,13 +86,15 @@ void kernel raytracing(__read_only  image3d_t volume,
                                  (int)((p.z - (-1.0f)) / voxel_size.z),
                                  1);
 
-      float4 scalar = read_imagef(volume, sampler, volume_index);
-      //float4 value = read_imagef(transfer_function, sampler,
-      //                           255 * (scalar.x));
-      //color = (1.0f - color.w) * value + color;
-      color += scalar;
+      float4 voxel_value = read_imagef(volume, sampler, volume_index);
+      float scalar = voxel_value.a * 255.0f;
+
+      src = read_imagef(transfer_function, sampler, scalar);
+      src.rgb *= src.a;
+      dst = (1.0f - dst.a) * src + dst;
+
       t += t_step;
-      if (t > t_far) break;
+      if (t > t_far || dst.a >= 0.95) break;
     }
-    write_imagef(image, uv, color / cnt);
+    write_imagef(image, uv, dst);
 }

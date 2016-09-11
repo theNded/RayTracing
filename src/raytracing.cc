@@ -30,6 +30,7 @@
 // ./raytracing filename width height depth sizeof_unit
 int main(int argc, char* args[]) {
 
+#define ManualAdjustTransferFunction
 #ifdef ManualAdjustTransferFunction
   typedef TransferFunction::ControlPoint ControlPoint;
 
@@ -41,16 +42,16 @@ int main(int argc, char* args[]) {
 
   std::vector<ControlPoint> a;
   a.push_back(ControlPoint(0.0f, 0));
-  a.push_back(ControlPoint(0.1f, 40));
-  a.push_back(ControlPoint(0.2f, 70));
-  a.push_back(ControlPoint(0.3f, 92));
+  a.push_back(ControlPoint(0.0f, 110));
+  //a.push_back(ControlPoint(0.1f, 92));
   a.push_back(ControlPoint(0.4f, 145));
   a.push_back(ControlPoint(0.7f, 192));
   a.push_back(ControlPoint(1.0f, 256));
   TransferFunction tf = TransferFunction(c, a);
-#endif
+#else
   TransferFunction tf = TransferFunction
       ("/Users/Neo/code/Data/transfer_function.txt");
+#endif
   VolumeData volume_data = VolumeData("/Users/Neo/code/Data/Bonsai.raw",
                                       512, 512, 189, 2);
   /*
