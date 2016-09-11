@@ -14,6 +14,8 @@ SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 SET(RayTracing_LIBRARIES "")
 SET(RayTracing_SOURCES
         src/raytracing.cc
+        src/volume_data.cc
+        src/transfer_function.cc
         src/gl_processor.cc
         src/cl_processor.cc
         src/cl_utils/context.cc

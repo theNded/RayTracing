@@ -12,6 +12,9 @@
 #include "cl_utils/context.h"
 #include "cl_utils/kernel.h"
 
+#include "transfer_function.h"
+#include "volume_data.h"
+
 class CLProcessor {
 public:
   CLProcessor(std::string        kernel_path,
@@ -19,8 +22,8 @@ public:
               cl_utils::Context *cl_context);
   ~CLProcessor();
 
-  void Init(void *volume_data,
-            size_t width, size_t height, size_t depth, size_t unit_size,
+  void Init(VolumeData &volume_data,
+            TransferFunction &transfer_function,
             GLuint texture);
   void Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
                cl_float3 camera,
@@ -35,6 +38,7 @@ private:
   cl_kernel          kernel_;
   cl_mem             volume_;
   cl_mem             image_;
+  cl_mem             transfer_function_;
 
   cl_float3          range_;
 };

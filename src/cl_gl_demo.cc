@@ -22,7 +22,6 @@
 #include "gl_utils/shader.h"
 #include "gl_utils/texture.h"
 
-#include "cl_utils/cl.hpp"
 #include "cl_utils/context.h"
 #include "cl_utils/kernel.h"
 

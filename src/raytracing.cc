@@ -19,27 +19,46 @@
 #include "gl_utils/shader.h"
 #include "gl_utils/texture.h"
 
-#include "cl_utils/cl.hpp"
 #include "cl_utils/context.h"
 #include "cl_utils/kernel.h"
 
 #include "gl_processor.h"
 #include "cl_processor.h"
 
+#include <vector>
+#include "transfer_function.h"
 // ./raytracing filename width height depth sizeof_unit
 int main(int argc, char* args[]) {
-  bool with_args = (argc == 6);
-  const char *filename   = with_args ? args[1]
-                                     : "/Users/Neo/code/Data/Bonsai.raw";
-  const size_t width     = with_args ? (size_t)atoi(args[2]) : 512;
-  const size_t height    = with_args ? (size_t)atoi(args[3]) : 512;
-  const size_t depth     = with_args ? (size_t)atoi(args[4]) : 189;
-  const size_t unit_size = with_args ? (size_t)atoi(args[5]) : 2;
-  const size_t array_size = width * height * depth * unit_size;
-  char *volume_data = new char [array_size];
 
-  std::ifstream volume_data_file(filename, std::ios::in | std::ios::binary);
-  volume_data_file.read(volume_data, array_size);
+#ifdef ManualAdjustTransferFunction
+  typedef TransferFunction::ControlPoint ControlPoint;
+
+  std::vector<ControlPoint> c;
+  c.push_back(ControlPoint(.02f, .7f, .61f, 0));
+  c.push_back(ControlPoint(.35f, .7f, .61f, 80));
+  c.push_back(ControlPoint(.75f, 1.0f, .85f, 182));
+  c.push_back(ControlPoint(1.0f, 1.0f, .85f, 256));
+
+  std::vector<ControlPoint> a;
+  a.push_back(ControlPoint(0.0f, 0));
+  a.push_back(ControlPoint(0.1f, 40));
+  a.push_back(ControlPoint(0.2f, 70));
+  a.push_back(ControlPoint(0.3f, 92));
+  a.push_back(ControlPoint(0.4f, 145));
+  a.push_back(ControlPoint(0.7f, 192));
+  a.push_back(ControlPoint(1.0f, 256));
+  TransferFunction tf = TransferFunction(c, a);
+#endif
+  TransferFunction tf = TransferFunction
+      ("/Users/Neo/code/Data/transfer_function.txt");
+  VolumeData volume_data = VolumeData("/Users/Neo/code/Data/Bonsai.raw",
+                                      512, 512, 189, 2);
+  /*
+  else
+    volume_data = VolumeData(args[1],
+                                 (size_t)(args[2]), (size_t)(args[3]),
+                                 (size_t)(args[3]), (size_t)(args[4]));*/
+
 
   // Init OpenGL. This step must be ahead of OpenCL
   gl_utils::Context gl_context("CL x GL demo", 512, 512);
@@ -58,13 +77,12 @@ int main(int argc, char* args[]) {
   CLProcessor cl_processor("raytracing.cl",
                            "raytracing",
                            &cl_context);
-  cl_processor.Init(volume_data,
-                    width, height, depth, unit_size,
-                    gl_processor.texture());
+  cl_processor.Init(volume_data, tf, gl_processor.texture());
 
-  delete [] volume_data;
-
+#define LOOP
+#ifdef LOOP
   do {
+#endif
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glFinish();
 
@@ -81,10 +99,10 @@ int main(int argc, char* args[]) {
 
     glfwSwapBuffers(gl_context.window());
     glfwPollEvents();
-
+#ifdef LOOP
   } while( glfwGetKey(gl_context.window(), GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
            glfwWindowShouldClose(gl_context.window()) == 0 );
-
+#endif
   glfwTerminate();
 
   return 0;

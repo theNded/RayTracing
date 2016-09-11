@@ -26,7 +26,9 @@ int intersect_box(float3 origin,  float3 direction,
 	return largest_t_min < smallest_t_max;
 };
 
+// __read_only image1d_t
 void kernel raytracing(__read_only  image3d_t volume,
+                       __read_only  image1d_t transfer_function,
                        __write_only image2d_t image,
                        float3 r1, float3 r2, float3 r3,
                        float3 camera, float2 f, float3 range) {
@@ -72,18 +74,24 @@ void kernel raytracing(__read_only  image3d_t volume,
 
     // Variables
     float t = (t_near < 0) ? 0 : t_near;
-    float4 color = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
+    float4 color = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
 
-    for (;;) {
+    int cnt = 0;
+    for (;;cnt ++) {
       float3 p = camera + t * dir_world;
       int4 volume_index = (int4)((int)((p.x - (-1.0f)) / voxel_size.x),
-                                 (int)((p.y - (-1.0f)) / voxel_size.y),
+                                 (int) // flip y axis
+                                 (range.y - (p.y - (-1.0f)) / voxel_size.y),
                                  (int)((p.z - (-1.0f)) / voxel_size.z),
                                  1);
 
-      color += read_imagef(volume, sampler, volume_index);
+      float4 scalar = read_imagef(volume, sampler, volume_index);
+      //float4 value = read_imagef(transfer_function, sampler,
+      //                           255 * (scalar.x));
+      //color = (1.0f - color.w) * value + color;
+      color += scalar;
       t += t_step;
       if (t > t_far) break;
     }
-    write_imagef(image, uv, 0.01f * (float4)(0.0f, color.y, 0.0f, 1.0f));
+    write_imagef(image, uv, color / cnt);
 }
