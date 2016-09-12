@@ -36,7 +36,8 @@ void CLProcessor::Init(VolumeData &volume_data,
   image_ = clCreateFromGLTexture(context_->context(),
                                  CL_MEM_WRITE_ONLY,
                                  GL_TEXTURE_2D, 0, texture, NULL);
-  range_ = volume_data.dims();
+  dims_   = volume_data.dims();
+  scales_ = volume_data.scales();
 }
 
 void CLProcessor::Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
@@ -54,7 +55,8 @@ void CLProcessor::Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
   clSetKernelArg(kernel_, 6, sizeof(cl_float3), &camera);
   clSetKernelArg(kernel_, 7, sizeof(cl_float2), &f);
 
-  clSetKernelArg(kernel_, 8, sizeof(cl_float3), &range_);
+  clSetKernelArg(kernel_, 8, sizeof(cl_float3), &dims_);
+  clSetKernelArg(kernel_, 9, sizeof(cl_float3), &scales_);
 
   clEnqueueNDRangeKernel(context_->queue(), kernel_, 2, NULL,
                          kGlobalWorkSize, NULL,

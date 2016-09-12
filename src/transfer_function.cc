@@ -18,28 +18,30 @@ TransferFunction::float4 TransferFunction::float4::One =
 TransferFunction::float4(1.0f, 1.0f, 1.0f, 1.0f);
 
 TransferFunction::TransferFunction(std::string transfer_function_path) {
-  std::ifstream tf_stream(transfer_function_path, std::ios::in);
-  char dummy;
-  float value;
-  for (int i = 0; i < 256; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      tf_stream >> dummy >> dummy >> dummy >> value;
-      transfer_function_data_[i * 4 + j] = float2uchar(value);
-    }
-    for (int j = 0; j < 3; ++j) {
-      tf_stream >> dummy >> dummy >> dummy >> value;
-      transfer_function_data_[i * 4 + 3] = float2uchar(value);
-    }
-  }
-  for (int i = 0; i < 256; ++i) {
-    std::cout << (int)transfer_function_data_[i * 4 + 3] << ",";
-  }
+  Load(transfer_function_path);
 }
 
-TransferFunction::TransferFunction(std::vector<ControlPoint>
-                                   color_control_points,
-                                   std::vector<ControlPoint>
-                                   alpha_control_points) {
+TransferFunction::TransferFunction(
+    std::vector<ControlPoint> color_control_points,
+    std::vector<ControlPoint> alpha_control_points) {
+  GenerateFromControlPoints(color_control_points, alpha_control_points);
+}
+
+void TransferFunction::Load(std::string file_path) {
+  std::ifstream tf_file(file_path, std::ios::in | std::ios::binary);
+  tf_file.read(reinterpret_cast<char *>(transfer_function_data_),
+               256 * 4);
+}
+
+void TransferFunction::Save(std::string file_path) {
+  std::ofstream tf_file(file_path, std::ios::out | std::ios::binary);
+  tf_file.write(reinterpret_cast<char *>(transfer_function_data_),
+                256 * 4);
+}
+
+void TransferFunction::GenerateFromControlPoints(
+    std::vector<ControlPoint> color_control_points,
+    std::vector<ControlPoint> alpha_control_points) {
   // (n + 1) control points
   // return 4 x n cubics
   color_cubics_ = CubicsFromControlPoints(color_control_points);
@@ -92,7 +94,8 @@ unsigned char * TransferFunction::transfer_function_data() {
 }
 
 // http://graphicsrunner.blogspot.jp/2009/01/volume-rendering-102-transfer-functions.html
-std::vector<TransferFunction::Cubic> TransferFunction::CubicsFromControlPoints(
+std::vector<TransferFunction::Cubic>
+TransferFunction::CubicsFromControlPoints(
     std::vector<ControlPoint> v) {
 
   int n = (int)v.size() - 1;

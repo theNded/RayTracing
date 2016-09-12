@@ -31,7 +31,7 @@ void kernel raytracing(__read_only  image3d_t volume,
                        __read_only  image1d_t transfer_function,
                        __write_only image2d_t image,
                        float3 r1, float3 r2, float3 r3,
-                       float3 camera, float2 f, float3 range) {
+                       float3 camera, float2 f, float3 dims, float3 scales) {
     // Get width and index
     float2 wh = (float2)(get_global_size(0), get_global_size(1));
     int2 uv = (int2)(get_global_id(0), get_global_id(1));
@@ -53,8 +53,10 @@ void kernel raytracing(__read_only  image3d_t volume,
     dir_world.z = (fabs(dir_world.z) < epsilon) ? epsilon : dir_world.z;
 
     // Place the volume-data inside the box from @box_min to @box_max
-    float3 bound_min = (float3)(-1.2f, -1.2f, -0.2f * 1.4f);
-    float3 bound_max = - bound_min;
+    float3 bound_max = dims * scales;
+    float max_bound = max(max(bound_max.x, bound_max.y), bound_max.z);
+    bound_max /= max_bound;
+    float3 bound_min = - bound_max;
 
     // Intersect the ray with the large box
     float t_near, t_far;
@@ -68,9 +70,9 @@ void kernel raytracing(__read_only  image3d_t volume,
 
     // Ray-casting
     // Constants
-    float3 voxel_size = (bound_max - bound_min) / range;
+    float3 voxel_size = (bound_max - bound_min) / dims;
     float t_step      = 0.8f * voxel_size.x;
-    int max_iteration = (int)(range.x + range.y + range.z);
+    int max_iteration = (int)(dims.x + dims.y + dims.z);
 
     // Variables
     float t = (t_near < 0) ? 0 : t_near;
@@ -81,7 +83,7 @@ void kernel raytracing(__read_only  image3d_t volume,
     for (;;cnt ++) {
       float3 p = camera + t * dir_world;
       float4 volume_index = (float4)(((p.x - bound_min.x) / voxel_size.x),
-                                    (range.y - (p.y - bound_min.y) / voxel_size
+                                    (dims.y - (p.y - bound_min.y) / voxel_size
                                     .y),
                                     ((p.z - bound_min.z) / voxel_size.z),
                                     1.0f);

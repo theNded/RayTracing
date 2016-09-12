@@ -40,7 +40,8 @@ private:
   cl_mem             image_;
   cl_mem             transfer_function_;
 
-  cl_float3          range_;
+  cl_float3          dims_;
+  cl_float3          scales_;
 };
 
 

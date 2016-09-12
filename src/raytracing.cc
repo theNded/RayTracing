@@ -2,6 +2,7 @@
 // Created by Neo on 16/8/8.
 //
 
+#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -12,6 +13,9 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include <opencv2/opencv.hpp>
+
+#include <rapidjson/document.h>
+#include <rapidjson/filereadstream.h>
 
 #include "gl_utils/context.h"
 #include "gl_utils/control.h"
@@ -25,38 +29,58 @@
 #include "gl_processor.h"
 #include "cl_processor.h"
 
-// ./raytracing filename width height depth sizeof_unit
-int main(int argc, char* args[]) {
+std::string kDefaultConfigPath = "/Users/Neo/code/Data/hazelnuts/config.json";
 
-#define ManualAdjustTransferFunction
+int main(int argc, char* args[]) {
+  FILE* config_fp = fopen((argc > 1) ? args[1] : kDefaultConfigPath.c_str(), "r");
+  char readBuffer[4096];
+  rapidjson::FileReadStream is(config_fp, readBuffer, sizeof(readBuffer));
+  rapidjson::Document config;
+  config.ParseStream(is);
+  fclose(config_fp);
+
+  std::string volume_file_path = config["volume data path"].GetString();
+  std::string tf_file_path     = config["transfer function path"].GetString();
+  int dims[] = {
+      config["dims"]["x"].GetInt(),
+      config["dims"]["y"].GetInt(),
+      config["dims"]["z"].GetInt()
+  };
+  float scales[] = {
+      config["scales"]["x"].GetFloat(),
+      config["scales"]["y"].GetFloat(),
+      config["scales"]["z"].GetFloat()
+  };
+  int unit_size = config["unit size"].GetInt();
+
+#define ManualAdjustTransferFunction_
 #ifdef ManualAdjustTransferFunction
   typedef TransferFunction::ControlPoint ControlPoint;
-
   std::vector<ControlPoint> c;
-  c.push_back(ControlPoint(.91f, .7f, .61f, 0));
-  c.push_back(ControlPoint(.91f, .7f, .61f, 80));
-  c.push_back(ControlPoint(1.0f, 1.0f, .85f, 82));
-  c.push_back(ControlPoint(1.0f, 1.0f, .85f, 256));
+
+  c.push_back(ControlPoint(.1f, .8f, .0f, 0));
+  c.push_back(ControlPoint(.1f, .8f, .0f, 110));
+  c.push_back(ControlPoint(.43f, .24f, .09f, 112));
+  c.push_back(ControlPoint(.43f, .24f, .09f, 256));
 
   std::vector<ControlPoint> a;
   a.push_back(ControlPoint(0.0f, 0));
-  a.push_back(ControlPoint(0.0f, 40));
-  a.push_back(ControlPoint(0.2f, 60));
-  a.push_back(ControlPoint(0.05f, 63));
-  a.push_back(ControlPoint(0.0f, 80));
-  a.push_back(ControlPoint(0.9f, 82));
+  a.push_back(ControlPoint(0.0f, 70));
+  a.push_back(ControlPoint(0.2f, 111));
+  a.push_back(ControlPoint(0.0f, 150));
   a.push_back(ControlPoint(1.0f, 256));
   TransferFunction tf = TransferFunction(c, a);
-
+  tf.Save("/Users/Neo/Desktop/Bonsai2.tf");
 #else
-  TransferFunction tf = TransferFunction
-      ("/Users/Neo/code/Data/transfer_function.txt");
+  TransferFunction tf = TransferFunction(tf_file_path);
 #endif
-  VolumeData volume_data = VolumeData("/Users/Neo/code/Data/Lobster.raw",
-                                      301, 324, 56, 1);
+  VolumeData volume_data = VolumeData(volume_file_path,
+                                      dims[0], dims[1], dims[2],
+                                      scales[0], scales[1], scales[2],
+                                      unit_size);
 
   // Init OpenGL. This step must be ahead of OpenCL
-  gl_utils::Context gl_context("CL x GL demo", 640, 480);
+  gl_utils::Context gl_context("CL x GL demo", 512, 512);
   gl_utils::Control gl_control(gl_context.window(),
                                gl_context.width(),
                                gl_context.height());

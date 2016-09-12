@@ -73,11 +73,18 @@ public:
   TransferFunction(std::vector<ControlPoint> color_control_points,
                    std::vector<ControlPoint> alpha_control_points);
 
+  void Save(std::string path);
+  void Load(std::string path);
+
   cl_image_format format() const;
   cl_image_desc   desc()   const;
   unsigned char *transfer_function_data();
 
 private:
+  void GenerateFromControlPoints(
+      std::vector<ControlPoint> color_control_points,
+      std::vector<ControlPoint> alpha_control_points);
+
   std::vector<TransferFunction::Cubic> CubicsFromControlPoints(
       std::vector<TransferFunction::ControlPoint> points);
 
