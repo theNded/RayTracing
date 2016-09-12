@@ -25,8 +25,6 @@
 #include "gl_processor.h"
 #include "cl_processor.h"
 
-#include <vector>
-#include "transfer_function.h"
 // ./raytracing filename width height depth sizeof_unit
 int main(int argc, char* args[]) {
 
@@ -35,34 +33,30 @@ int main(int argc, char* args[]) {
   typedef TransferFunction::ControlPoint ControlPoint;
 
   std::vector<ControlPoint> c;
-  c.push_back(ControlPoint(.02f, .7f, .61f, 0));
-  c.push_back(ControlPoint(.35f, .7f, .61f, 80));
-  c.push_back(ControlPoint(.75f, 1.0f, .85f, 182));
+  c.push_back(ControlPoint(.91f, .7f, .61f, 0));
+  c.push_back(ControlPoint(.91f, .7f, .61f, 80));
+  c.push_back(ControlPoint(1.0f, 1.0f, .85f, 82));
   c.push_back(ControlPoint(1.0f, 1.0f, .85f, 256));
 
   std::vector<ControlPoint> a;
   a.push_back(ControlPoint(0.0f, 0));
-  a.push_back(ControlPoint(0.0f, 110));
-  //a.push_back(ControlPoint(0.1f, 92));
-  a.push_back(ControlPoint(0.4f, 145));
-  a.push_back(ControlPoint(0.7f, 192));
+  a.push_back(ControlPoint(0.0f, 40));
+  a.push_back(ControlPoint(0.2f, 60));
+  a.push_back(ControlPoint(0.05f, 63));
+  a.push_back(ControlPoint(0.0f, 80));
+  a.push_back(ControlPoint(0.9f, 82));
   a.push_back(ControlPoint(1.0f, 256));
   TransferFunction tf = TransferFunction(c, a);
+
 #else
   TransferFunction tf = TransferFunction
       ("/Users/Neo/code/Data/transfer_function.txt");
 #endif
-  VolumeData volume_data = VolumeData("/Users/Neo/code/Data/Bonsai.raw",
-                                      512, 512, 189, 2);
-  /*
-  else
-    volume_data = VolumeData(args[1],
-                                 (size_t)(args[2]), (size_t)(args[3]),
-                                 (size_t)(args[3]), (size_t)(args[4]));*/
-
+  VolumeData volume_data = VolumeData("/Users/Neo/code/Data/Lobster.raw",
+                                      301, 324, 56, 1);
 
   // Init OpenGL. This step must be ahead of OpenCL
-  gl_utils::Context gl_context("CL x GL demo", 512, 512);
+  gl_utils::Context gl_context("CL x GL demo", 640, 480);
   gl_utils::Control gl_control(gl_context.window(),
                                gl_context.width(),
                                gl_context.height());
@@ -80,8 +74,8 @@ int main(int argc, char* args[]) {
                            &cl_context);
   cl_processor.Init(volume_data, tf, gl_processor.texture());
 
-#define LOOP
-#ifdef LOOP
+#define DEBUG_
+#ifndef DEBUG
   do {
 #endif
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -100,7 +94,7 @@ int main(int argc, char* args[]) {
 
     glfwSwapBuffers(gl_context.window());
     glfwPollEvents();
-#ifdef LOOP
+#ifndef DEBUG
   } while( glfwGetKey(gl_context.window(), GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
            glfwWindowShouldClose(gl_context.window()) == 0 );
 #endif

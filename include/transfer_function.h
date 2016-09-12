@@ -15,38 +15,40 @@ public:
     float4() {r = g = b = a = 0.0f;}
     float4(float ri, float gi, float bi, float ai) :
         r(ri), g(gi), b(bi), a(ai) {}
-    float4 operator + (float4 o) {
+    float4 operator + (const float4 o) {
       return float4(r + o.r, g + o.g, b + o.b, a + o.a);
     }
-    float4 operator - (float4 o) {
+    float4 operator - (const float4 o) {
       return float4(r - o.r, g - o.g, b - o.b, a - o.a);
     }
-    float4 operator / (float4 o) {
+    float4 operator / (const float4 o) {
       return float4(r / o.r, g / o.g, b / o.g, a / o.g);
     }
-    float4 operator * (float4 o) {
+    float4 operator * (const float4 o) {
       return float4(r * o.r, g * o.g, b * o.g, a * o.g);
     }
-    float4 operator * (float scalar) {
+    float4 operator * (const float scalar) {
       return float4(r * scalar, g * scalar, b * scalar, a * scalar);
     }
-    static float4 One() {
-      return float4(1.0f, 1.0f, 1.0f, 1.0f);
+    friend float4 operator * (const float scalar, float4 v) {
+      return v * scalar;
     }
+
+    static float4 One;
   };
 
   struct ControlPoint {
     float4 rgba;
-    int    val;
+    int    index;
 
-    ControlPoint(float r, float g, float b, int v) {
+    ControlPoint(float r, float g, float b, int i) {
       rgba = float4(r, g, b, 0.0f);
-      val = v;
+      index = i;
     }
 
-    ControlPoint(float a, int v) {
+    ControlPoint(float a, int i) {
       rgba = float4(0, 0, 0, a);
-      val = v;
+      index = i;
     }
   };
 
@@ -64,10 +66,15 @@ public:
     }
   };
 
+  // Read from file
   TransferFunction(std::string transfer_function_path);
+
+  // Manually designate
   TransferFunction(std::vector<ControlPoint> color_control_points,
                    std::vector<ControlPoint> alpha_control_points);
 
+  cl_image_format format() const;
+  cl_image_desc   desc()   const;
   unsigned char *transfer_function_data();
 
 private:

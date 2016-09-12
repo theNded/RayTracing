@@ -31,7 +31,5 @@
 # CLion
 .idea/
 *.xml
-RayTracing
-
 bin/RayTracing
 .DS_Store

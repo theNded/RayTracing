@@ -53,8 +53,8 @@ void kernel raytracing(__read_only  image3d_t volume,
     dir_world.z = (fabs(dir_world.z) < epsilon) ? epsilon : dir_world.z;
 
     // Place the volume-data inside the box from @box_min to @box_max
-    float3 bound_min = (float3)(-1.0f, -1.0f, -1.0f);
-    float3 bound_max = (float3)( 1.0f,  1.0f,  1.0f);
+    float3 bound_min = (float3)(-1.2f, -1.2f, -0.2f * 1.4f);
+    float3 bound_max = - bound_min;
 
     // Intersect the ray with the large box
     float t_near, t_far;
@@ -68,7 +68,7 @@ void kernel raytracing(__read_only  image3d_t volume,
 
     // Ray-casting
     // Constants
-    float3 voxel_size = 2.0f / range;
+    float3 voxel_size = (bound_max - bound_min) / range;
     float t_step      = 0.8f * voxel_size.x;
     int max_iteration = (int)(range.x + range.y + range.z);
 
@@ -80,11 +80,11 @@ void kernel raytracing(__read_only  image3d_t volume,
     int cnt = 0;
     for (;;cnt ++) {
       float3 p = camera + t * dir_world;
-      int4 volume_index = (int4)((int)((p.x - (-1.0f)) / voxel_size.x),
-                                 (int) // flip y axis
-                                 (range.y - (p.y - (-1.0f)) / voxel_size.y),
-                                 (int)((p.z - (-1.0f)) / voxel_size.z),
-                                 1);
+      float4 volume_index = (float4)(((p.x - bound_min.x) / voxel_size.x),
+                                    (range.y - (p.y - bound_min.y) / voxel_size
+                                    .y),
+                                    ((p.z - bound_min.z) / voxel_size.z),
+                                    1.0f);
 
       float4 voxel_value = read_imagef(volume, sampler, volume_index);
       float scalar = voxel_value.a * 255.0f;
@@ -92,6 +92,10 @@ void kernel raytracing(__read_only  image3d_t volume,
       src = read_imagef(transfer_function, sampler, scalar);
       src.rgb *= src.a;
       dst = (1.0f - dst.a) * src + dst;
+
+      //float a = src.a;
+      //dst = mix(dst, src, (float4)(a, a, a, a));
+
 
       t += t_step;
       if (t > t_far || dst.a >= 0.95) break;

@@ -18,15 +18,15 @@ CLProcessor::CLProcessor(std::string        kernel_path,
 void CLProcessor::Init(VolumeData &volume_data,
                        TransferFunction &transfer_function,
                        GLuint texture) {
-  cl_image_format format = volume_data.format();
-  cl_image_desc   desc   = volume_data.desc();
+  cl_image_format volume_format = volume_data.format();
+  cl_image_desc   volume_desc   = volume_data.desc();
   volume_ =
       clCreateImage(context_->context(),
                     CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                    &format, &desc,
+                    &volume_format, &volume_desc,
                     volume_data.data(), NULL);
-  cl_image_format tf_format = {CL_RGBA, CL_UNORM_INT8};
-  cl_image_desc   tf_desc   = {CL_MEM_OBJECT_IMAGE1D, 256};
+  cl_image_format tf_format = transfer_function.format();
+  cl_image_desc   tf_desc   = transfer_function.desc();
   transfer_function_ =
      clCreateImage(context_->context(),
                    CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,

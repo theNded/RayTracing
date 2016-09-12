@@ -12,7 +12,7 @@
 class VolumeData {
 public:
   VolumeData(std::string data_path,
-             size_t width, size_t height, size_t depth,
+             size_t width, size_t height, size_t depth, // scale x,y,z
              size_t unit_size);
   ~VolumeData();
 
