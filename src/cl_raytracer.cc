@@ -2,12 +2,9 @@
 // Created by Neo on 16/8/9.
 //
 
-#include "cl_processor.h"
+#include "cl_raytracer.h"
 
-const size_t CLProcessor::kGlobalWorkSize[] =
-    {512, 512};
-
-CLProcessor::CLProcessor(std::string        kernel_path,
+CLRayTracer::CLRayTracer(std::string        kernel_path,
                          std::string        kernel_name,
                          cl_utils::Context *cl_context) {
   context_ = cl_context;
@@ -15,9 +12,10 @@ CLProcessor::CLProcessor(std::string        kernel_path,
                                  context_->device(), context_->context());
 }
 
-void CLProcessor::Init(VolumeData &volume_data,
+void CLRayTracer::Init(VolumeData &volume_data,
                        TransferFunction &transfer_function,
-                       GLuint texture) {
+                       GLuint texture,
+                       size_t texture_width, size_t texture_height) {
   cl_image_format volume_format = volume_data.format();
   cl_image_desc   volume_desc   = volume_data.desc();
   volume_ =
@@ -38,9 +36,12 @@ void CLProcessor::Init(VolumeData &volume_data,
                                  GL_TEXTURE_2D, 0, texture, NULL);
   dims_   = volume_data.dims();
   scales_ = volume_data.scales();
+
+  global_work_size[0] = texture_width;
+  global_work_size[1] = texture_height;
 }
 
-void CLProcessor::Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
+void CLRayTracer::Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
                           cl_float3 camera, cl_float2 f) {
   clEnqueueAcquireGLObjects(context_->queue(), 1,  &image_, 0, 0, NULL);
 
@@ -59,14 +60,14 @@ void CLProcessor::Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
   clSetKernelArg(kernel_, 9, sizeof(cl_float3), &scales_);
 
   clEnqueueNDRangeKernel(context_->queue(), kernel_, 2, NULL,
-                         kGlobalWorkSize, NULL,
+                         global_work_size, NULL,
                          0, NULL, NULL);
 
   clFinish(context_->queue());
   clEnqueueReleaseGLObjects(context_->queue(), 1,  &image_, 0, 0, NULL);
 }
 
-CLProcessor::~CLProcessor() {
+CLRayTracer::~CLRayTracer() {
   clReleaseMemObject(volume_);
   clReleaseMemObject(image_);
 

@@ -15,24 +15,23 @@
 #include "transfer_function.h"
 #include "volume_data.h"
 
-class CLProcessor {
+class CLRayTracer {
 public:
-  CLProcessor(std::string        kernel_path,
+  CLRayTracer(std::string        kernel_path,
               std::string        kernel_name,
               cl_utils::Context *cl_context);
-  ~CLProcessor();
+  ~CLRayTracer();
 
   void Init(VolumeData &volume_data,
             TransferFunction &transfer_function,
-            GLuint texture);
+            GLuint texture,
+            size_t texture_width, size_t texture_height);
   void Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
                cl_float3 camera,
                cl_float2 f);
 
 private:
-  static const cl_image_format kFormat;
-  static const cl_image_desc   kDesc;
-  static const size_t          kGlobalWorkSize[];
+  size_t             global_work_size[2];
 
   cl_utils::Context *context_;
   cl_kernel          kernel_;

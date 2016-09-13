@@ -30,8 +30,9 @@ int intersect_box(float3 origin,  float3 direction,
 void kernel raytracing(__read_only  image3d_t volume,
                        __read_only  image1d_t transfer_function,
                        __write_only image2d_t image,
-                       float3 r1, float3 r2, float3 r3,
-                       float3 camera, float2 f, float3 dims, float3 scales) {
+                       float3 Rrow1, float3 Rrow2, float3 Rrow3,
+                       float3 camera, float2 f,
+                       float3 dims, float3 scales) {
     // Get width and index
     float2 wh = (float2)(get_global_size(0), get_global_size(1));
     int2 uv = (int2)(get_global_id(0), get_global_id(1));
@@ -42,9 +43,9 @@ void kernel raytracing(__read_only  image3d_t volume,
     float3 dir_camera = (float3)((2.0f * uv.x / wh.x - 1.0f) / f.x,
                                  (1.0f - 2.0f * uv.y / wh.y) / f.y,
                                  -1.0f);
-    float3 dir_world = (float3)(dot(dir_camera, r1),
-                                dot(dir_camera, r2),
-                                dot(dir_camera, r3));
+    float3 dir_world = (float3)(dot(dir_camera, Rrow1),
+                                dot(dir_camera, Rrow2),
+                                dot(dir_camera, Rrow3));
 
     // Ill-condition adjustment
     float epsilon = 1e-10f;
@@ -94,10 +95,6 @@ void kernel raytracing(__read_only  image3d_t volume,
       src = read_imagef(transfer_function, sampler, scalar);
       src.rgb *= src.a;
       dst = (1.0f - dst.a) * src + dst;
-
-      //float a = src.a;
-      //dst = mix(dst, src, (float4)(a, a, a, a));
-
 
       t += t_step;
       if (t > t_far || dst.a >= 0.95) break;

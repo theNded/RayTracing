@@ -27,12 +27,14 @@
 #include "cl_utils/kernel.h"
 
 #include "gl_processor.h"
-#include "cl_processor.h"
+#include "cl_raytracer.h"
 
-std::string kDefaultConfigPath = "/Users/Neo/code/Data/hazelnuts/config.json";
+std::string kDefaultConfigPath = "/Users/Neo/code/Data/Lobster/";
 
 int main(int argc, char* args[]) {
-  FILE* config_fp = fopen((argc > 1) ? args[1] : kDefaultConfigPath.c_str(), "r");
+  std::string config_path = (argc > 1) ? args[1] : kDefaultConfigPath;
+  config_path += "config.json";
+  FILE* config_fp = fopen(config_path.c_str(), "r");
   char readBuffer[4096];
   rapidjson::FileReadStream is(config_fp, readBuffer, sizeof(readBuffer));
   rapidjson::Document config;
@@ -93,10 +95,12 @@ int main(int argc, char* args[]) {
 
   // Init OpenCL
   cl_utils::Context cl_context = cl_utils::Context();
-  CLProcessor cl_processor("raytracing.cl",
+  CLRayTracer cl_raytracer("raytracing.cl",
                            "raytracing",
                            &cl_context);
-  cl_processor.Init(volume_data, tf, gl_processor.texture());
+  cl_raytracer.Init(volume_data, tf,
+                    gl_processor.texture(),
+                    gl_context.width(), gl_context.height());
 
 #define DEBUG_
 #ifndef DEBUG
@@ -113,7 +117,7 @@ int main(int argc, char* args[]) {
     cl_float3 r3     = {T_inv[0][2], T_inv[1][2], T_inv[2][2]};
     cl_float3 camera = {T_inv[3][0], T_inv[3][1], T_inv[3][2]};
     cl_float2 f      = {P[0][0], P[1][1]};
-    cl_processor.Compute(r1, r2, r3, camera, f);
+    cl_raytracer.Compute(r1, r2, r3, camera, f);
     gl_processor.Render();
 
     glfwSwapBuffers(gl_context.window());

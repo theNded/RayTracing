@@ -10,6 +10,7 @@ VolumeData::VolumeData(std::string data_path,
                        size_t width, size_t height, size_t depth,
                        float scale_x, float scale_y, float scale_z,
                        size_t unit_size) {
+  data_unit_size_ = unit_size;
   data_byte_count_ = width * height * depth * unit_size;
   data_ptr_ = new char [data_byte_count_];
   std::ifstream volume_data_file(data_path,
@@ -39,6 +40,10 @@ cl_image_desc VolumeData::desc() const {
 
 cl_image_format VolumeData::format() const {
   return data_format_;
+}
+
+size_t VolumeData::unit_size() const {
+  return data_unit_size_;
 }
 
 cl_float3 VolumeData::dims() const {

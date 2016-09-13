@@ -17,6 +17,7 @@ public:
              size_t unit_size);
   ~VolumeData();
 
+  size_t          unit_size() const;
   cl_float3       dims()   const;
   cl_float3       scales() const;
   cl_image_format format() const;
@@ -26,6 +27,7 @@ public:
 private:
   char           *data_ptr_;
   size_t          data_byte_count_;
+  size_t          data_unit_size_;
 
   cl_float3       data_dims_;
   cl_float3       data_scales_;
