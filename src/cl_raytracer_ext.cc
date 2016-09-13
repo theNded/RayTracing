@@ -2,9 +2,9 @@
 // Created by Neo on 16/8/9.
 //
 
-#include "cl_raytracer.h"
+#include "cl_raytracer_ext.h"
 
-CLRayTracer::CLRayTracer(std::string        kernel_path,
+CLRayTracerShaded::CLRayTracerShaded(std::string        kernel_path,
                          std::string        kernel_name,
                          cl_utils::Context *cl_context) {
   context_ = cl_context;
@@ -12,8 +12,9 @@ CLRayTracer::CLRayTracer(std::string        kernel_path,
                                  context_->device(), context_->context());
 }
 
-void CLRayTracer::Init(VolumeData &volume_data,
+void CLRayTracerShaded::Init(VolumeData &volume_data,
                        TransferFunction &transfer_function,
+                       unsigned char *gradient,
                        GLuint texture,
                        size_t texture_width, size_t texture_height) {
   cl_image_format volume_format = volume_data.format();
@@ -23,14 +24,20 @@ void CLRayTracer::Init(VolumeData &volume_data,
                     CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
                     &volume_format, &volume_desc,
                     volume_data.data(), NULL);
+  cl_image_format gradient_format = {CL_RGBA, CL_UNORM_INT8};
 
+  gradient_ =
+      clCreateImage(context_->context(),
+                    CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                    &gradient_format, &volume_desc,
+                    gradient, NULL);
   cl_image_format tf_format = transfer_function.format();
   cl_image_desc   tf_desc   = transfer_function.desc();
   transfer_function_ =
-      clCreateImage(context_->context(),
-                    CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                    &tf_format, &tf_desc,
-                    transfer_function.transfer_function_data(), NULL);
+     clCreateImage(context_->context(),
+                   CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                   &tf_format, &tf_desc,
+                   transfer_function.transfer_function_data(), NULL);
 
   image_ = clCreateFromGLTexture(context_->context(),
                                  CL_MEM_WRITE_ONLY,
@@ -42,23 +49,24 @@ void CLRayTracer::Init(VolumeData &volume_data,
   global_work_size[1] = texture_height;
 }
 
-void CLRayTracer::Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
-                                cl_float3 camera, cl_float2 f) {
+void CLRayTracerShaded::Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
+                          cl_float3 camera, cl_float2 f) {
   clEnqueueAcquireGLObjects(context_->queue(), 1,  &image_, 0, 0, NULL);
 
   clSetKernelArg(kernel_, 0, sizeof(cl_mem),    &volume_);
-  clSetKernelArg(kernel_, 1, sizeof(cl_mem),    &transfer_function_);
-  clSetKernelArg(kernel_, 2, sizeof(cl_mem),    &image_);
+  clSetKernelArg(kernel_, 1, sizeof(cl_mem),    &gradient_);
+  clSetKernelArg(kernel_, 2, sizeof(cl_mem),    &transfer_function_);
+  clSetKernelArg(kernel_, 3, sizeof(cl_mem),    &image_);
 
-  clSetKernelArg(kernel_, 3, sizeof(cl_float3), &r1);
-  clSetKernelArg(kernel_, 4, sizeof(cl_float3), &r2);
-  clSetKernelArg(kernel_, 5, sizeof(cl_float3), &r3);
+  clSetKernelArg(kernel_, 4, sizeof(cl_float3), &r1);
+  clSetKernelArg(kernel_, 5, sizeof(cl_float3), &r2);
+  clSetKernelArg(kernel_, 6, sizeof(cl_float3), &r3);
 
-  clSetKernelArg(kernel_, 6, sizeof(cl_float3), &camera);
-  clSetKernelArg(kernel_, 7, sizeof(cl_float2), &f);
+  clSetKernelArg(kernel_, 7, sizeof(cl_float3), &camera);
+  clSetKernelArg(kernel_, 8, sizeof(cl_float2), &f);
 
-  clSetKernelArg(kernel_, 8, sizeof(cl_float3), &dims_);
-  clSetKernelArg(kernel_, 9, sizeof(cl_float3), &scales_);
+  clSetKernelArg(kernel_, 9, sizeof(cl_float3), &dims_);
+  clSetKernelArg(kernel_, 10, sizeof(cl_float3), &scales_);
 
   clEnqueueNDRangeKernel(context_->queue(), kernel_, 2, NULL,
                          global_work_size, NULL,
@@ -68,7 +76,7 @@ void CLRayTracer::Compute(cl_float3 r1, cl_float3 r2, cl_float3 r3,
   clEnqueueReleaseGLObjects(context_->queue(), 1,  &image_, 0, 0, NULL);
 }
 
-CLRayTracer::~CLRayTracer() {
+CLRayTracerShaded::~CLRayTracerShaded() {
   clReleaseMemObject(volume_);
   clReleaseMemObject(image_);
 

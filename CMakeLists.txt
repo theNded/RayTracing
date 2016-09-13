@@ -18,6 +18,7 @@ SET(RayTracing_SOURCES
         src/transfer_function.cc
         src/gl_processor.cc
         src/cl_raytracer.cc
+        src/cl_raytracer_ext.cc
         src/cl_gradient.cc
         src/cl_utils/context.cc
         src/cl_utils/kernel.cc

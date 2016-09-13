@@ -16,6 +16,8 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
+#include <cl_raytracer_ext.h>
+#include <cl_raytracer.h>
 
 #include "gl_utils/context.h"
 #include "gl_utils/control.h"
@@ -28,9 +30,10 @@
 
 #include "gl_processor.h"
 #include "cl_raytracer.h"
+#include "cl_raytracer_ext.h"
 #include "cl_gradient.h"
 
-std::string kDefaultConfigPath = "/Users/Neo/code/Data/Foot/";
+std::string kDefaultConfigPath = "/Users/Neo/code/Data/VisMale/";
 
 int main(int argc, char* args[]) {
   // Open config file:
@@ -105,6 +108,8 @@ int main(int argc, char* args[]) {
   // Init OpenCL context.
   cl_utils::Context cl_context = cl_utils::Context();
 
+#define SHADED_
+#ifdef SHADED
   // Init OpenCL gradient processor
   CLGradient cl_gradient_solver("gradient.cl",
                                 "gradient",
@@ -114,12 +119,20 @@ int main(int argc, char* args[]) {
 
   unsigned char *gradient = cl_gradient_solver.volume_gradient;
   // Init OpenCL ray tracer
+  CLRayTracerShaded cl_raytracer("raytracing_shading.cl",
+                                 "raytracing",
+                                 &cl_context);
+  cl_raytracer.Init(volume_data, tf, gradient,
+                    cgl_texture_handler,
+                    gl_context.width(), gl_context.height());
+#else
   CLRayTracer cl_raytracer("raytracing.cl",
                            "raytracing",
                            &cl_context);
   cl_raytracer.Init(volume_data, tf,
                     cgl_texture_handler,
                     gl_context.width(), gl_context.height());
+#endif
 
 #define DEBUG_
 #ifndef DEBUG

@@ -68,10 +68,10 @@ void Control::UpdateCameraPose() {
   glm::vec3 up = glm::cross(right, look_direction);
 
   if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) {
-    position_ += move_direction * move_speed_ * delta_time;
+    position_ += look_direction * move_speed_ * delta_time;
   }
   if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) {
-    position_ -= move_direction * move_speed_ * delta_time;
+    position_ -= look_direction * move_speed_ * delta_time;
   }
   if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) {
     position_ += right * move_speed_ * delta_time;
@@ -80,10 +80,10 @@ void Control::UpdateCameraPose() {
     position_ -= right * move_speed_ * delta_time;
   }
   if (glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS) {
-    position_.y += move_speed_ * delta_time;
+    position_ += up * move_speed_ * delta_time;
   }
   if (glfwGetKey(window_, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-    position_.y -= move_speed_ * delta_time;
+    position_ -= up * move_speed_ * delta_time;
   }
 
   projection_mat_ = glm::perspective(fov_, (float)width_ / (float)height_,

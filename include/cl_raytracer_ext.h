@@ -8,8 +8,8 @@
 //            output -> texture
 //
 
-#ifndef RAYTRACING_CL_RAYTRACER_H
-#define RAYTRACING_CL_RAYTRACER_H
+#ifndef RAYTRACING_CL_RAYTRACER_EXT_H
+#define RAYTRACING_CL_RAYTRACER_EXT_H
 
 #include <string>
 
@@ -21,16 +21,16 @@
 #include "transfer_function.h"
 #include "volume_data.h"
 
-class CLRayTracer {
+class CLRayTracerShaded {
 public:
   // Construct format:
   // @kernel path
   // @kernel function name
   // @context
-  CLRayTracer(std::string        kernel_path,
-              std::string        kernel_name,
-              cl_utils::Context *cl_context);
-  ~CLRayTracer();
+  CLRayTracerShaded(std::string        kernel_path,
+                    std::string        kernel_name,
+                    cl_utils::Context *cl_context);
+  ~CLRayTracerShaded();
 
   // Init format:
   // @input data ..
@@ -45,6 +45,7 @@ public:
   // if directly passing cl_mem is needed
   void Init(VolumeData &volume_data,
             TransferFunction &transfer_function,
+            unsigned char *gradient,
             GLuint texture,
             size_t texture_width, size_t texture_height);
 
@@ -63,6 +64,7 @@ private:
 
   // input
   cl_mem             volume_;
+  cl_mem             gradient_;
   cl_mem             transfer_function_;
 
   // output
