@@ -12,8 +12,7 @@ CLRayTracer::CLRayTracer(std::string        kernel_path,
                                  context_->device(), context_->context());
 }
 
-void CLRayTracer::Init(VolumeData &volume_data,
-                       TransferFunction &transfer_function,
+void CLRayTracer::Init(VolumeData &volume_data, TransferFunction &transfer_function,
                        GLuint texture,
                        size_t texture_width, size_t texture_height) {
   cl_image_format volume_format = volume_data.format();

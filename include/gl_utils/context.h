@@ -15,18 +15,18 @@
 namespace gl_utils {
 class Context {
 public:
-  Context(std::string window_name, int width, int height);
+  Context(std::string window_name, size_t width, size_t height);
 
   GLFWwindow *window() const;
-  int width();
-  int height();
+  size_t width();
+  size_t height();
 
 private:
   int Init(std::string window_name);
 
   GLFWwindow *window_;
-  int width_;
-  int height_;
+  size_t width_;
+  size_t height_;
 };
 }
 

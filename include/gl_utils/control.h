@@ -1,16 +1,21 @@
 //
 // Created by Neo on 16/7/17.
+// Specify mouse and keyboard control
 //
 
 #ifndef RAYTRACING_CONTROL_H
 #define RAYTRACING_CONTROL_H
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+
+#include "gl_utils/context.h"
 
 namespace gl_utils {
 class Control {
 public:
+  Control(gl_utils::Context *context);
   Control(GLFWwindow *window, int width, int height);
   void UpdateCameraPose();
 
@@ -18,6 +23,8 @@ public:
   glm::mat4 projection_mat();
 
 private:
+  void InitParameters();
+
   // Descartes-system
   glm::mat4 view_mat_;
   glm::mat4 projection_mat_;

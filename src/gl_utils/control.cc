@@ -13,18 +13,18 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace gl_utils {
+Control::Control(gl_utils::Context* context) {
+  window_ = context->window();
+  width_  = context->width();
+  height_ = context->height();
+  InitParameters();
+}
+
 Control::Control(GLFWwindow *window, int width, int height) {
   window_ = window;
   width_  = width;
   height_ = height;
-
-  position_         = glm::vec3(0, 0, 5);
-  horizontal_angle_ = (float)M_PI;
-  vertical_angle_   = 0.0f;
-  // In later glm versions, fov_ = glm::radians(45.0f)
-  fov_              = 45.0f;
-  move_speed_       = 3.0f;
-  rotate_speed_     = 0.005f;
+  InitParameters();
 }
 
 glm::mat4 Control::view_mat() {
@@ -95,5 +95,15 @@ void Control::UpdateCameraPose() {
       up);
 
   last_time = current_time;
+}
+
+void Control::InitParameters() {
+  position_         = glm::vec3(0, 0, 5);
+  horizontal_angle_ = (float)M_PI;
+  vertical_angle_   = 0.0f;
+  // In later glm versions, fov_ = glm::radians(45.0f)
+  fov_              = 45.0f;
+  move_speed_       = 3.0f;
+  rotate_speed_     = 0.005f;
 }
 }

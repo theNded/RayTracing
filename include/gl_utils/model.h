@@ -1,5 +1,6 @@
 //
 // Created by Neo on 16/7/29.
+// Simple .obj format file parser
 //
 
 #ifndef RAYTRACING_MODEL_H

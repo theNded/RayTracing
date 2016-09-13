@@ -13,6 +13,7 @@
 #include "volume_data.h"
 
 class CLGradient {
+public:
   CLGradient(std::string        kernel_path,
              std::string        kernel_name,
              cl_utils::Context *cl_context);
@@ -20,6 +21,7 @@ class CLGradient {
 
   void Init(VolumeData &volume_data);
   void Compute();
+  unsigned char* volume_gradient;
 
 private:
   size_t             global_work_size[3];
@@ -28,8 +30,6 @@ private:
   cl_kernel          kernel_;
   cl_mem             volume_raw_;
   cl_mem             volume_gradient_;
-
-  cl_float3          dims_;
 };
 
 

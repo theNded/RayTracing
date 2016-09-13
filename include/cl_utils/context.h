@@ -1,5 +1,6 @@
 //
 // Created by Neo on 16/8/6.
+// Enumerate usable devices, create context and command queue
 //
 
 #ifndef RAYTRACING_CLUTILS_CONTEXT_H

@@ -1,5 +1,7 @@
 //
 // Created by Neo on 16/8/6.
+// Compile kernel function with source code and OpenCL context
+// Return compiled kernel handler
 //
 
 #ifndef RAYTRACING_KERNEL_H

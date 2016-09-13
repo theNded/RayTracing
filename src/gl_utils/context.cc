@@ -7,7 +7,7 @@
 #include <iostream>
 
 namespace gl_utils {
-Context::Context(std::string window_name, int width, int height) {
+Context::Context(std::string window_name, size_t width, size_t height) {
   width_ = width;
   height_ = height;
   Init(window_name);
@@ -56,11 +56,11 @@ GLFWwindow *Context::window() const {
   return window_;
 }
 
-int Context::width() {
+size_t Context::width() {
   return width_;
 }
 
-int Context::height() {
+size_t Context::height() {
   return height_;
 }
 }

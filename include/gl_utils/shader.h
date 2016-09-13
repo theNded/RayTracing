@@ -1,5 +1,6 @@
 //
 // Created by Neo on 16/7/17.
+// Compile and link vertex and fragment shaders
 //
 
 #ifndef RAYTRACING_SHADER_H

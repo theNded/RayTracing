@@ -28,6 +28,7 @@ int intersect_box(float3 origin,  float3 direction,
 
 // __read_only image1d_t
 __kernel void raytracing(__read_only  image3d_t volume,
+                         __read_only  image3d_t gradient,
                          __read_only  image1d_t transfer_function,
                          __write_only image2d_t image,
                          float3 Rrow1, float3 Rrow2, float3 Rrow3,

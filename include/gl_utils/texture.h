@@ -1,5 +1,6 @@
 //
 // Created by Neo on 16/7/31.
+// Simple .bmp file parser
 //
 
 #ifndef RAYTRACING_TEXTURE_H
