@@ -1,5 +1,5 @@
-#pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable
-
+//#pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable
+#pragma OPENCL EXTENSION cl_khr_gl_sharing : enable
 const sampler_t sampler   = CLK_NORMALIZED_COORDS_FALSE |
                             CLK_ADDRESS_CLAMP_TO_EDGE |
                             CLK_FILTER_LINEAR;
@@ -90,14 +90,14 @@ __kernel void raytracing(__read_only  image3d_t volume,
                                     1.0f);
 
       float4 voxel_value = read_imagef(volume, sampler, volume_index);
-      float scalar = voxel_value.a * 255.0f;
+      float scalar = voxel_value.w * 255.0f;
 
       src = read_imagef(transfer_function, sampler, scalar);
-      src.rgb *= src.a;
-      dst = (1.0f - dst.a) * src + dst;
+      src.xyz *= src.w;
+      dst = (1.0f - dst.w) * src + dst;
 
       t += t_step;
-      if (t > t_far || dst.a >= 0.95) break;
+      if (t > t_far || dst.w >= 0.95) break;
     }
     write_imagef(image, uv, dst);
 }

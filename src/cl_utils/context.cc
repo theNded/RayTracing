@@ -6,7 +6,8 @@
 
 #include <iostream>
 
-#include <OpenGL/OpenGL.h>
+#include <GL/glew.h>
+#include <GL/glx.h>
 
 namespace cl_utils {
 
@@ -25,6 +26,24 @@ Context::Context() {
   std::cout << "Platform name          : " << std::string(info) << std::endl;
   delete[] info;
 
+#if __linux__
+    const cl_context_properties props[] = {
+      CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(),
+      CL_GLX_DISPLAY_KHR, (cl_context_properties)glXGetCurrentDisplay(),
+      CL_CONTEXT_PLATFORM, (cl_context_properties)platform,
+      0
+    };
+
+    cl_uint device_count;
+    clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, NULL, &device_count);
+
+    cl_device_id* devices = new cl_device_id[device_count];
+    clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, device_count, devices, NULL);
+
+    context_ = clCreateContext(props, 1, &devices[0], NULL, NULL, NULL);
+    device_ = devices[0];
+
+#elif __APPLE__
   // Context
   // If not Apple, use khr etc
   const cl_context_properties props[] = {
@@ -39,6 +58,7 @@ Context::Context() {
   clGetGLContextInfoAPPLE(context_, CGLGetCurrentContext(),
                           CL_CGL_DEVICE_FOR_CURRENT_VIRTUAL_SCREEN_APPLE,
                           sizeof(cl_device_id), &device_, NULL);
+#endif
 
   clGetDeviceInfo(device_, CL_DEVICE_NAME, 0, NULL, &info_length);
   info = new char[info_length];

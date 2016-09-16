@@ -40,7 +40,6 @@ FIND_PACKAGE(GLFW3 REQUIRED)
 FIND_PACKAGE(GLEW REQUIRED)
 FIND_PACKAGE(OpenGL REQUIRED)
 FIND_PACKAGE(OpenCL REQUIRED)
-FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(RapidJSON)
 
 ## Include
@@ -48,16 +47,22 @@ INCLUDE_DIRECTORIES(
         ${PROJECT_SOURCE_DIR}/include
         ${GLFW3_INCLUDE_DIRS}
         ${GLEW_INCLUDE_DIRS}
-        ${OpenCL_INCLUDE}
-        ${RapidJSON_INCLUDE})
+        ${OpenCL_INCLUDE_DIRS}
+        ${RapidJSON_INCLUDE_DIRS})
 ## Lib
 LIST(APPEND
         RayTracing_LIBRARIES
         ${OPENGL_LIBRARY}
         ${OpenCL_LIBRARY}
-        ${GLFW3_LIBRARIES}
         ${GLEW_LIBRARY})
 #----------
+if (APPLE)
+    LIST(APPEND RayTracing_LIBRARIES
+            ${GLFW_LIBRARIES})
+elseif (UNIX)
+    LIST(APPEND RayTracing_LIBRARIES
+            ${GLFW3_STATIC_LIBRARIES})
+endif()
 
 #---------
 # Compile and Link

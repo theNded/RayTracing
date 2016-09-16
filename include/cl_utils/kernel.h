@@ -9,7 +9,11 @@
 
 #include <string>
 
+#if __linux__
+#include <CL/cl.h>
+#elif __APPLE__
 #include <OpenCL/opencl.h>
+#endif
 
 namespace cl_utils {
 cl_kernel LoadKernel(std::string   kernel_path,

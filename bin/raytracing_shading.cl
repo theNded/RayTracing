@@ -93,16 +93,16 @@ __kernel void raytracing(__read_only  image3d_t volume,
       float4 voxel_value = read_imagef(volume, sampler, volume_index);
       float4 normal = read_imagef(gradient, sampler, volume_index);
 
-      float scalar = voxel_value.a * 255.0f;
+      float scalar = voxel_value.w * 255.0f;
 
       src = read_imagef(transfer_function, sampler, scalar);
       float4 d = (float4)(camera - p, 1.0f);
       float shade = fabs(dot(normalize(d), normalize(normal)));
-      src.rgb *= (shade * src.a);
-      dst = (1.0f - dst.a) * src + dst;
+      src.xyz *= (shade * src.w);
+      dst = (1.0f - dst.w) * src + dst;
 
       t += t_step;
-      if (t > t_far || dst.a >= 0.95) break;
+      if (t > t_far || dst.w >= 0.95) break;
     }
     write_imagef(image, uv, dst);
 }

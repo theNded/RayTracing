@@ -33,7 +33,7 @@
 #include "cl_raytracer_ext.h"
 #include "cl_gradient.h"
 
-std::string kDefaultConfigPath = "/Users/Neo/code/Data/VisMale/";
+std::string kDefaultConfigPath = "/home/voxel/dong/data/VisMale/";
 
 int main(int argc, char* args[]) {
   // Open config file:
@@ -108,7 +108,7 @@ int main(int argc, char* args[]) {
   // Init OpenCL context.
   cl_utils::Context cl_context = cl_utils::Context();
 
-#define SHADED_
+#define SHADED
 #ifdef SHADED
   // Init OpenCL gradient processor
   CLGradient cl_gradient_solver("gradient.cl",

@@ -7,7 +7,11 @@
 
 #include <string>
 
+#ifdef __linux__
+#include <CL/cl.h>
+#elif __APPLE__
 #include <OpenCL/opencl.h>
+#endif
 
 class VolumeData {
 public:

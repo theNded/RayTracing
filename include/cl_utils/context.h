@@ -8,7 +8,13 @@
 
 #include <vector>
 
+#if __linux__
+#include <CL/cl.h>
+#include <CL/cl_gl.h>
+#include <CL/cl_gl_ext.h>
+#elif __APPLE__
 #include <OpenCL/opencl.h>
+#endif
 
 namespace cl_utils {
 class Context {
