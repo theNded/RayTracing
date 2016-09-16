@@ -16,8 +16,8 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
-#include <cl_raytracer_ext.h>
-#include <cl_raytracer.h>
+#include "cl_raytracer_ext.h"
+#include "cl_raytracer.h"
 
 #include "gl_utils/context.h"
 #include "gl_utils/control.h"
@@ -33,7 +33,11 @@
 #include "cl_raytracer_ext.h"
 #include "cl_gradient.h"
 
+#if __linux__
 std::string kDefaultConfigPath = "/home/voxel/dong/data/VisMale/";
+#elif __APPLE__
+std::string kDefaultConfigPath = "/Users/Neo/code/Data/VisMale/";
+#endif
 
 int main(int argc, char* args[]) {
   // Open config file:

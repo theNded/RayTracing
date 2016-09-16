@@ -58,7 +58,7 @@ LIST(APPEND
 #----------
 if (APPLE)
     LIST(APPEND RayTracing_LIBRARIES
-            ${GLFW_LIBRARIES})
+            ${GLFW3_LIBRARIES})
 elseif (UNIX)
     LIST(APPEND RayTracing_LIBRARIES
             ${GLFW3_STATIC_LIBRARIES})

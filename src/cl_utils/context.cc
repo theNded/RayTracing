@@ -6,8 +6,11 @@
 
 #include <iostream>
 
-#include <GL/glew.h>
+#if __linux__
 #include <GL/glx.h>
+#elif __APPLE__
+#include <OpenGL/OpenGL.h>
+#endif
 
 namespace cl_utils {
 
