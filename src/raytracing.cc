@@ -12,8 +12,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-#include <opencv2/opencv.hpp>
-
 #include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
 #include "cl_raytracer_ext.h"
@@ -34,7 +32,7 @@
 #include "cl_gradient.h"
 
 #if __linux__
-std::string kDefaultConfigPath = "/home/voxel/dong/data/VisMale/";
+std::string kDefaultConfigPath = "/home/wei/data/SLAM_Prototype/";
 #elif __APPLE__
 std::string kDefaultConfigPath = "/Users/Neo/code/Data/VisMale/";
 #endif
@@ -76,7 +74,7 @@ int main(int argc, char* args[]) {
 #ifdef ManualAdjustTransferFunction
   typedef TransferFunction::ControlPoint ControlPoint;
   std::vector<ControlPoint> c;
-
+r
   c.push_back(ControlPoint(.1f, .8f, .0f, 0));
   c.push_back(ControlPoint(.1f, .8f, .0f, 110));
   c.push_back(ControlPoint(.43f, .24f, .09f, 112));
@@ -114,6 +112,7 @@ int main(int argc, char* args[]) {
 
 #define SHADED
 #ifdef SHADED
+#ifdef COMPUTE_GRADIENT
   // Init OpenCL gradient processor
   CLGradient cl_gradient_solver("gradient.cl",
                                 "gradient",
@@ -122,6 +121,35 @@ int main(int argc, char* args[]) {
   cl_gradient_solver.Compute();
 
   unsigned char *gradient = cl_gradient_solver.volume_gradient;
+#else
+  int iterations = dims[0] * dims[1] * dims[2];
+
+  unsigned char *gradient = new unsigned char [iterations * 4];
+  char *gradient_tmp = new char [iterations * 3];
+
+  std::string normal_file_path = config["normal data path"].GetString();
+  std::ifstream nml_file(normal_file_path, std::ios::in | std::ios::binary);
+  nml_file.read(gradient_tmp, iterations * 3 * sizeof(char));
+
+  for (int i = 0; i < iterations; ++i) {
+    unsigned char bx, by, bz;
+    float nx = gradient_tmp[i * 3 + 0],
+          ny = gradient_tmp[i * 3 + 1],
+          nz = gradient_tmp[i * 3 + 2];
+    float len = sqrt(nx * nx + ny * ny + nz * nz);
+    if (len < 1e-6) {
+      bx = by = bz = 0;
+    } else {
+      bx = (unsigned char)((nx / len) * 128);
+      by = (unsigned char)((ny / len) * 128);
+      bz = (unsigned char)((nz / len) * 128);
+    }
+    gradient[i * 4 + 0] = bx;
+    gradient[i * 4 + 1] = by;
+    gradient[i * 4 + 2] = bz;
+    gradient[i * 4 + 3] = 0;
+  }
+#endif
   // Init OpenCL ray tracer
   CLRayTracerShaded cl_raytracer("raytracing_shading.cl",
                                  "raytracing",

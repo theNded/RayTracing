@@ -68,6 +68,5 @@ endif()
 # Compile and Link
 ADD_EXECUTABLE(RayTracing ${RayTracing_SOURCES})
 TARGET_LINK_LIBRARIES(RayTracing
-        ${RayTracing_LIBRARIES}
-        ${OpenCV_LIBS})
+        ${RayTracing_LIBRARIES})
 #---------

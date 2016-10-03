@@ -84,9 +84,8 @@ __kernel void raytracing(__read_only  image3d_t volume,
     for (;;cnt ++) {
       float3 p = camera + t * dir_world;
       float4 volume_index = (float4)(((p.x - bound_min.x) / voxel_size.x),
-                                    (dims.y - (p.y - bound_min.y) / voxel_size
-                                    .y),
-                                    ((p.z - bound_min.z) / voxel_size.z),
+                                    (dims.y - (p.y - bound_min.y) / voxel_size.y),
+                                    (dims.z - (p.z - bound_min.z) / voxel_size.z),
                                     1.0f);
 
       float4 voxel_value = read_imagef(volume, sampler, volume_index);
