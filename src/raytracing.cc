@@ -132,6 +132,7 @@ r
   nml_file.read(gradient_tmp, iterations * 3 * sizeof(char));
 
   for (int i = 0; i < iterations; ++i) {
+#ifdef NORMALIZE_FOR_SHORT
     unsigned char bx, by, bz;
     float nx = gradient_tmp[i * 3 + 0],
           ny = gradient_tmp[i * 3 + 1],
@@ -148,10 +149,16 @@ r
     gradient[i * 4 + 1] = by;
     gradient[i * 4 + 2] = bz;
     gradient[i * 4 + 3] = 0;
+#else
+    gradient[i * 4 + 0] = gradient_tmp[i * 3 + 0];
+    gradient[i * 4 + 1] = gradient_tmp[i * 3 + 1];
+    gradient[i * 4 + 2] = gradient_tmp[i * 3 + 2];
+    gradient[i * 4 + 3] = 0;
+#endif
   }
 #endif
   // Init OpenCL ray tracer
-  CLRayTracerShaded cl_raytracer("raytracing_shading.cl",
+  CLRayTracerShaded cl_raytracer("raytracing_slam.cl",
                                  "raytracing",
                                  &cl_context);
   cl_raytracer.Init(volume_data, tf, gradient,
